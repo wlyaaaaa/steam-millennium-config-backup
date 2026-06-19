@@ -1,0 +1,21 @@
+/* 将全盘所有界面的滚动条收窄为 4px 极简细线 */
+::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+}
+
+/* 滚动条滑块：变成半透明淡灰色，圆角包裹 */
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+}
+
+/* 鼠标悬浮在滚动条上时才稍微加深，平时极简隐形 */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* 轨道完全透明，消灭大灰条 */
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}

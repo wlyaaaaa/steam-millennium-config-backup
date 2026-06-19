@@ -1,0 +1,135 @@
+{
+  "general": {
+    "accentColor": "#00ff00",
+    "checkForMillenniumUpdates": true,
+    "checkForPluginAndThemeUpdates": true,
+    "injectCSS": true,
+    "injectJavascript": true,
+    "millenniumUpdateChannel": "beta",
+    "onMillenniumUpdate": 2,
+    "shouldShowThemePluginUpdateNotifications": true
+  },
+  "misc": {
+    "hasShownWelcomeModal": true
+  },
+  "network": {
+    "proxy": "",
+    "proxyPassword": "",
+    "proxyUsername": ""
+  },
+  "notifications": {
+    "showNotifications": true,
+    "showPluginNotifications": true,
+    "showUpdateNotifications": true
+  },
+  "plugins": {
+    "enabledPlugins": [
+      "extendium",
+      "steam-easygrid",
+      "hltb-for-millennium",
+      "size-on-disk"
+    ]
+  },
+  "themes": {
+    "activeTheme": "Adwaita-for-Steam",
+    "allowedScripts": true,
+    "allowedStyles": true,
+    "conditions": {
+      "Adwaita-for-Steam": {
+        "Color theme": "Default",
+        "Font": "Adwaita",
+        "Hide What's New shelf": "no",
+        "Keep pointer cursor for clickable elements": "no",
+        "Login QR code": "Show",
+        "Remove rounded corners": "no",
+        "Show Library sidebar on hover": "no",
+        "Show URL": "no",
+        "Window controls layout": "Adwaita",
+        "Window controls theme": "Adwaita (GNOME)"
+      },
+      "Zehn": {
+        "Avatar Shape": "Round",
+        "Background Color Mix": "100",
+        "Color Mode": "Light",
+        "Color Space": "sRGB",
+        "Content Mode": "Panel",
+        "Display Waifu": "no",
+        "Download Preview Width": "250",
+        "Foreground Color Mix": "50",
+        "Navbar Size": "Normal",
+        "Scrollbar Style": "Hidden",
+        "Show Accent Color on Window Borders": "yes",
+        "Show Account Avatar": "yes",
+        "Show Add Shelf": "yes",
+        "Show Tooltips": "yes",
+        "Show URL Bar": "yes",
+        "Show What's New": "yes",
+        "Titlebar Size": "Normal",
+        "Transparency Effects": "yes",
+        "Waifu Position": "Bottom Right",
+        "Waifu Presence": "Fade"
+      }
+    },
+    "themeColors": {
+      "Adwaita-for-Steam": {
+        "--adw-accent-bg-rgb": "39, 168, 100",
+        "--adw-accent-fg-rgb": "255, 255, 255",
+        "--adw-accent-rgb": "39, 168, 100",
+        "--adw-banner-bg-rgb": "39, 168, 100",
+        "--adw-banner-fg-rgb": "20, 80, 45",
+        "--adw-card-bg-rgb": "245, 246, 248",
+        "--adw-card-fg-rgb": "35, 40, 50",
+        "--adw-card-shade-rgb": "0, 0, 6",
+        "--adw-destructive-bg-rgb": "220, 53, 69",
+        "--adw-destructive-fg-rgb": "255, 255, 255",
+        "--adw-destructive-rgb": "220, 53, 69",
+        "--adw-dialog-bg-rgb": "255, 255, 255",
+        "--adw-dialog-fg-rgb": "35, 40, 50",
+        "--adw-error-bg-rgb": "220, 53, 69",
+        "--adw-error-fg-rgb": "255, 255, 255",
+        "--adw-error-rgb": "220, 53, 69",
+        "--adw-headerbar-bg-rgb": "255, 255, 255",
+        "--adw-headerbar-border-rgb": "215, 220, 228",
+        "--adw-headerbar-darker-shade-rgb": "0, 0, 12",
+        "--adw-headerbar-fg-rgb": "35, 40, 50",
+        "--adw-headerbar-shade-rgb": "255, 255, 255",
+        "--adw-popover-bg-rgb": "255, 255, 255",
+        "--adw-popover-fg-rgb": "35, 40, 50",
+        "--adw-popover-shade-rgb": "0, 0, 0",
+        "--adw-secondary-sidebar-backdrop-rgb": "0, 0, 0",
+        "--adw-secondary-sidebar-bg-rgb": "242, 244, 247",
+        "--adw-secondary-sidebar-fg-rgb": "35, 40, 50",
+        "--adw-secondary-sidebar-shade-rgb": "255, 255, 255",
+        "--adw-shade-rgb": "0, 0, 0",
+        "--adw-sidebar-backdrop-rgb": "245, 246, 248",
+        "--adw-sidebar-bg-rgb": "240, 242, 246",
+        "--adw-sidebar-fg-rgb": "35, 40, 50",
+        "--adw-sidebar-shade-rgb": "0, 0, 6",
+        "--adw-success-bg-rgb": "40, 167, 69",
+        "--adw-success-fg-rgb": "255, 255, 255",
+        "--adw-success-rgb": "40, 167, 69",
+        "--adw-thumbnail-bg-rgb": "225, 228, 232",
+        "--adw-thumbnail-fg-rgb": "35, 40, 50",
+        "--adw-user-ingame-rgb": "67, 181, 129",
+        "--adw-user-offline-rgb": "93, 97, 105",
+        "--adw-user-online-rgb": "74, 144, 226",
+        "--adw-view-bg-rgb": "255, 255, 255",
+        "--adw-view-fg-rgb": "35, 40, 50",
+        "--adw-warning-bg-rgb": "245, 158, 11",
+        "--adw-warning-fg-rgb": "255, 255, 255",
+        "--adw-warning-rgb": "245, 158, 11",
+        "--adw-window-bg-rgb": "255, 255, 255",
+        "--adw-window-fg-rgb": "35, 40, 50"
+      },
+      "Zehn": {
+        "--custom-color-away": "240, 178, 50",
+        "--custom-color-background": "255, 255, 255",
+        "--custom-color-disturb": "242, 63, 67",
+        "--custom-color-foreground": "0, 255, 42",
+        "--custom-color-ingame": "35, 165, 90",
+        "--custom-color-offline": "128, 132, 142",
+        "--custom-color-online": "35, 165, 90"
+      }
+    }
+  }
+}
