@@ -61,6 +61,20 @@ try {
     Assert-False (Test-Path -LiteralPath (Join-Path $destRoot 'plugins\sample-plugin\plugin.js')) 'excludes plugin source'
     Assert-False (Test-Path -LiteralPath (Join-Path $destRoot 'themes\sample-theme\preview.png')) 'excludes theme assets'
     Assert-False (Test-Path -LiteralPath (Join-Path $destRoot 'debug.log')) 'excludes runtime logs'
+
+    $fakeRepoRoot = Join-Path $caseRoot 'fake-repo'
+    $fakeToolsRoot = Join-Path $fakeRepoRoot 'tools'
+    $fakeRuntimeRoot = Join-Path $caseRoot 'winps-runtime'
+    New-Item -ItemType Directory -Force -Path $fakeToolsRoot | Out-Null
+    $fakeSnapshotScript = Join-Path $fakeToolsRoot 'snapshot-millennium-config.ps1'
+    Copy-Item -LiteralPath $snapshotScript -Destination $fakeSnapshotScript -Force
+
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $fakeSnapshotScript -SourceRoot $sourceRoot -RuntimeRoot $fakeRuntimeRoot -ThrottleDays 0 -Force -AllowDirtyDestination | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "Windows PowerShell compatibility check failed with exit code $LASTEXITCODE"
+    }
+
+    Assert-True (Test-Path -LiteralPath (Join-Path $fakeRepoRoot 'config\config.json')) 'runs under Windows PowerShell with default destination root'
 }
 finally {
     if (Test-Path -LiteralPath $caseRoot) {

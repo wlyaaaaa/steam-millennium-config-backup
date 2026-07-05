@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string] $SourceRoot,
-    [string] $DestinationRoot = (Split-Path -Parent $PSScriptRoot),
+    [string] $DestinationRoot,
     [string] $RuntimeRoot = 'E:\steam-millennium-config-backup-runtime',
     [int] $ThrottleDays = 7,
     [switch] $Force,
@@ -9,6 +9,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($DestinationRoot)) {
+    $DestinationRoot = Split-Path -Parent $PSScriptRoot
+}
 
 function Get-MillenniumSourceRoot {
     param([string] $ExplicitSourceRoot)
