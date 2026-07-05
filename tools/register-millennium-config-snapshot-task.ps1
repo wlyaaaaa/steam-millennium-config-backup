@@ -1,0 +1,40 @@
+[CmdletBinding()]
+param(
+    [string] $TaskName = 'SteamMillenniumConfigSnapshot',
+    [string] $RepoRoot = (Split-Path -Parent $PSScriptRoot)
+)
+
+$ErrorActionPreference = 'Stop'
+
+$snapshotScript = Join-Path $RepoRoot 'tools\snapshot-millennium-config.ps1'
+if (-not (Test-Path -LiteralPath $snapshotScript -PathType Leaf)) {
+    throw "Snapshot script not found: $snapshotScript"
+}
+
+$escapedScript = $snapshotScript.Replace('"', '""')
+$action = New-ScheduledTaskAction `
+    -Execute 'powershell.exe' `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$escapedScript`"" `
+    -WorkingDirectory $RepoRoot
+
+$weeklyTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 20:30
+
+$settings = New-ScheduledTaskSettingsSet `
+    -MultipleInstances IgnoreNew `
+    -StartWhenAvailable `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+
+$principal = New-ScheduledTaskPrincipal `
+    -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) `
+    -LogonType Interactive `
+    -RunLevel Limited
+
+$task = New-ScheduledTask `
+    -Action $action `
+    -Trigger $weeklyTrigger `
+    -Settings $settings `
+    -Principal $principal `
+    -Description 'Low-frequency allowlisted Steam Millennium config snapshot. Copies only public-safe JSON/CSS config files.'
+
+Register-ScheduledTask -TaskName $TaskName -InputObject $task -Force | Out-Null
+Get-ScheduledTask -TaskName $TaskName

@@ -3,7 +3,7 @@
 本仓库是 **Steam + [Millennium](https://github.com/SteamClientHomebrew/Millennium) 库管理器** 的配置快照备份，用于在重装系统、迁移设备或误操作后快速恢复个性化设置。
 
 > 备份来源：`C:\Program Files (x86)\Steam\millennium`
-> 备份日期：2026-06-20
+> 备份日期：2026-07-05
 
 ---
 
@@ -33,11 +33,11 @@
 
 ### 通用设置（`config/config.json`）
 - 强调色：`#00ff00`（纯绿）
-- 更新通道：`beta`
+- 更新通道：`stable`
 - 启用 CSS 注入、JavaScript 注入
 - 当前激活主题：**Adwaita-for-Steam**
 
-### 已启用插件
+### 已安装插件
 
 | 插件 | 名称 | 版本 | 功能 |
 |------|------|------|------|
@@ -46,6 +46,8 @@
 | `hltb-for-millennium` | HLTB for Steam | 2.1.0 | 游戏页面显示 How Long To Beat 通关时长 |
 | `size-on-disk` | Size on Disk | 1.0.0 | 即时显示游戏占用磁盘大小 |
 | `steam-taskbar-progress` | Taskbar Download progress | 2.2.2 | 在 Windows 任务栏显示下载进度 |
+
+当前启用：`extendium`、`size-on-disk`、`steam-easygrid`。
 
 ### 已安装主题
 

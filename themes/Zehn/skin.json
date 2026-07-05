@@ -297,6 +297,32 @@
         }
       }
     },
+    "Panel Roundness": {
+      "description": "Adjust the corner roundness of panels.",
+      "tab": "Scale and Layout",
+      "section": "Library",
+      "default": 4,
+      "slider": {
+        "cssVariable": "--option-panel-roundness",
+        "min": 0,
+        "max": 8,
+        "step": 2,
+        "unit": "px"
+      }
+    },
+    "Content Roundness": {
+      "description": "Adjust the corner roundness of content.",
+      "tab": "Scale and Layout",
+      "section": "Library",
+      "default": 0,
+      "slider": {
+        "cssVariable": "--option-content-roundness",
+        "min": 0,
+        "max": 8,
+        "step": 2,
+        "unit": "px"
+      }
+    },
     "Show Add Shelf": {
       "description": "Show the Add Shelf panel.",
       "tab": "Scale and Layout",
@@ -526,6 +552,11 @@
       "TargetJs": "patch/friends.js"
     },
     {
+      "MatchRegexString": ".HoverPopup",
+      "TargetCss": "patch/friends.css",
+      "TargetJs": "patch/friends.js"
+    },
+    {
       "MatchRegexString": "Menu$",
       "TargetCss": "patch/library.css",
       "TargetJs": "patch/library.js"
@@ -557,7 +588,7 @@
     "owner": "yurisuika",
     "repo_name": "Zehn"
   },
-  "version": "2026.6.11",
+  "version": "2026.7.1",
   "tags": [
     "Minimal",
     "Color",

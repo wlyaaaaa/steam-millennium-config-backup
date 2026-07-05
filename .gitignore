@@ -1,0 +1,7 @@
+# Runtime material stays outside the public backup snapshot.
+logs/
+runtime/
+*.log
+*.tmp
+*.bak
+*.xml
