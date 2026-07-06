@@ -7,14 +7,17 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $snapshotScript = Join-Path $RepoRoot 'tools\snapshot-millennium-config.ps1'
+$snapshotLauncher = Join-Path $RepoRoot 'tools\snapshot-millennium-config-hidden.vbs'
 if (-not (Test-Path -LiteralPath $snapshotScript -PathType Leaf)) {
     throw "Snapshot script not found: $snapshotScript"
 }
+if (-not (Test-Path -LiteralPath $snapshotLauncher -PathType Leaf)) {
+    throw "Snapshot launcher not found: $snapshotLauncher"
+}
 
-$escapedScript = $snapshotScript.Replace('"', '""')
 $action = New-ScheduledTaskAction `
-    -Execute 'powershell.exe' `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$escapedScript`"" `
+    -Execute 'wscript.exe' `
+    -Argument ('"{0}"' -f $snapshotLauncher) `
     -WorkingDirectory $RepoRoot
 
 $weeklyTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 20:30
