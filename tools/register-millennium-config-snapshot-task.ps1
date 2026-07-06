@@ -20,7 +20,7 @@ $action = New-ScheduledTaskAction `
     -Argument ('"{0}"' -f $snapshotLauncher) `
     -WorkingDirectory $RepoRoot
 
-$weeklyTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 20:30
+$weeklyTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 19:30
 
 $settings = New-ScheduledTaskSettingsSet `
     -MultipleInstances IgnoreNew `
