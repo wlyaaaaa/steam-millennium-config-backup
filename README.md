@@ -17,6 +17,8 @@
 | `plugins/` | 各插件的 `plugin.json` / `metadata.json` / `install-state.json` | 记录已安装插件及其版本/提交号 |
 | `themes/` | 各主题的 `metadata.json` / `skin.json` / `theme.json` / `options.json` / `waifus.json` | 记录已安装主题及其个性化选项 |
 
+注意：`plugins/` 只备份插件清单、元数据和安装状态。插件自己的运行时设置、缓存、账号相关状态或插件私有 `config.json` 不在当前白名单内；恢复后需要在插件内重新检查这些设置。
+
 ### 为隐私而**刻意排除**的文件
 
 | 文件 | 排除原因 |
@@ -65,7 +67,7 @@
 1. 通过官方安装器安装 [Millennium](https://github.com/SteamClientHomebrew/Millennium)。
 2. 在 Millennium 内重新安装上表中列出的插件与主题。
 3. 将本仓库的 `config/`、`plugins/`、`themes/` 覆盖回 `C:\Program Files (x86)\Steam\millennium\` 对应目录。
-4. 重启 Steam，配置即恢复。
+4. 重启 Steam，并逐个检查插件自己的设置页面；这些插件私有设置不保证由本仓库恢复。
 
 ---
 
