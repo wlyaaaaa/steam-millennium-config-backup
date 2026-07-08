@@ -2,7 +2,7 @@
 param(
     [string] $SourceRoot,
     [string] $DestinationRoot,
-    [string] $RuntimeRoot = 'E:\steam-millennium-config-backup-runtime',
+    [string] $RuntimeRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) 'runtime'),
     [int] $ThrottleDays = 7,
     [switch] $Force,
     [switch] $AllowDirtyDestination
