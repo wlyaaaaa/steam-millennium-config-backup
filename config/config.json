@@ -24,9 +24,9 @@
   },
   "plugins": {
     "enabledPlugins": [
-      "extendium",
       "size-on-disk",
-      "steam-easygrid"
+      "steam-easygrid",
+      "extendium"
     ]
   },
   "themes": {

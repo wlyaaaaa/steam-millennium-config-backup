@@ -2,13 +2,17 @@
 param(
     [string] $SourceRoot,
     [string] $DestinationRoot,
-    [string] $RuntimeRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) 'runtime'),
+    [string] $RuntimeRoot = '',
     [int] $ThrottleDays = 7,
     [switch] $Force,
     [switch] $AllowDirtyDestination
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
+    $RuntimeRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'runtime'
+}
 
 if ([string]::IsNullOrWhiteSpace($DestinationRoot)) {
     $DestinationRoot = Split-Path -Parent $PSScriptRoot
@@ -92,14 +96,48 @@ function Remove-DirectoryInside {
 }
 
 function Test-DestinationDirty {
-    param([Parameter(Mandatory = $true)] [string] $Root)
+    param(
+        [Parameter(Mandatory = $true)] [string] $Root,
+        [Parameter(Mandatory = $true)] [string] $SourceRoot
+    )
 
     if (-not (Test-Path -LiteralPath (Join-Path $Root '.git'))) {
         return $false
     }
 
-    $status = @(git -C $Root status --porcelain)
-    return ($status.Count -gt 0)
+    # The scheduled task executes this script from the destination repository.
+    # A source-only edit to the runner is not snapshot data that the task will
+    # overwrite. Snapshot files are allowed only when they already byte-match
+    # the current source; divergent manual edits remain protected.
+    $selfRelativePath = 'tools\snapshot-millennium-config.ps1'
+    $status = @(git -C $Root status --porcelain --untracked-files=all)
+    foreach ($entry in $status) {
+        if ([string]::IsNullOrWhiteSpace($entry) -or $entry.Length -lt 4) {
+            continue
+        }
+
+        $relativePath = $entry.Substring(3).Trim().Trim('"').Replace('/', '\')
+        if ($relativePath -eq $selfRelativePath) {
+            continue
+        }
+
+        if ($relativePath -match '^(config|plugins|themes)[\\/]') {
+            $sourcePath = Join-Path $SourceRoot $relativePath
+            $destinationPath = Join-Path $Root $relativePath
+            if ((Test-Path -LiteralPath $sourcePath -PathType Leaf) -and
+                (Test-Path -LiteralPath $destinationPath -PathType Leaf)) {
+                $sourceHash = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash
+                $destinationHash = (Get-FileHash -LiteralPath $destinationPath -Algorithm SHA256).Hash
+                if ($sourceHash -eq $destinationHash) {
+                    continue
+                }
+            }
+        }
+
+        return $true
+    }
+
+    return $false
 }
 
 function Copy-IfPresent {
@@ -238,7 +276,7 @@ New-Item -ItemType Directory -Force -Path $RuntimeRoot | Out-Null
 $resolvedDestination = (Resolve-Path -LiteralPath $DestinationRoot).Path
 $resolvedRuntime = (Resolve-Path -LiteralPath $RuntimeRoot).Path
 
-if ((Test-DestinationDirty -Root $resolvedDestination) -and -not $AllowDirtyDestination) {
+if ((Test-DestinationDirty -Root $resolvedDestination -SourceRoot $resolvedSource) -and -not $AllowDirtyDestination) {
     throw "Destination git workspace is dirty. Commit/review existing changes before snapshot, or pass -AllowDirtyDestination for an intentional manual run."
 }
 

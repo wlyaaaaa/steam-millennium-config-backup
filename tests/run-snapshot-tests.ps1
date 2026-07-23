@@ -62,6 +62,53 @@ try {
     Assert-False (Test-Path -LiteralPath (Join-Path $destRoot 'themes\sample-theme\preview.png')) 'excludes theme assets'
     Assert-False (Test-Path -LiteralPath (Join-Path $destRoot 'debug.log')) 'excludes runtime logs'
 
+    $guardSourceRoot = Join-Path $caseRoot 'guard-source'
+    $guardDestRoot = Join-Path $caseRoot 'guard-dest'
+    $guardRuntimeRoot = Join-Path $caseRoot 'guard-runtime'
+    New-Item -ItemType Directory -Force -Path (Join-Path $guardSourceRoot 'config') | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $guardDestRoot 'config') | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $guardDestRoot 'tools') | Out-Null
+    Set-Content -LiteralPath (Join-Path $guardSourceRoot 'config\config.json') -Value '{"value":"current"}' -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $guardDestRoot 'config\config.json') -Value '{"value":"baseline"}' -Encoding UTF8
+    Copy-Item -LiteralPath $snapshotScript -Destination (Join-Path $guardDestRoot 'tools\snapshot-millennium-config.ps1')
+    git -C $guardDestRoot init --quiet
+    git -C $guardDestRoot config user.name 'Snapshot Test'
+    git -C $guardDestRoot config user.email 'snapshot-test@example.invalid'
+    git -C $guardDestRoot add -- .
+    git -C $guardDestRoot commit --quiet -m 'fixture'
+
+    Set-Content -LiteralPath (Join-Path $guardDestRoot 'config\config.json') -Value '{"value":"current"}' -Encoding UTF8
+    Add-Content -LiteralPath (Join-Path $guardDestRoot 'tools\snapshot-millennium-config.ps1') -Value '# source-only test edit'
+    $sourceMatchingAllowed = $true
+    try {
+        & $snapshotScript -SourceRoot $guardSourceRoot -DestinationRoot $guardDestRoot -RuntimeRoot $guardRuntimeRoot -Force | Out-Host
+    }
+    catch {
+        $sourceMatchingAllowed = $false
+    }
+    Assert-True $sourceMatchingAllowed 'allows source-matching snapshot files and a source-only runner edit'
+
+    Set-Content -LiteralPath (Join-Path $guardDestRoot 'config\config.json') -Value '{"value":"manual-divergence"}' -Encoding UTF8
+    $divergentBlocked = $false
+    try {
+        & $snapshotScript -SourceRoot $guardSourceRoot -DestinationRoot $guardDestRoot -RuntimeRoot $guardRuntimeRoot -Force | Out-Host
+    }
+    catch {
+        $divergentBlocked = $_.Exception.Message -like 'Destination git workspace is dirty*'
+    }
+    Assert-True $divergentBlocked 'blocks divergent manual snapshot edits'
+
+    Set-Content -LiteralPath (Join-Path $guardDestRoot 'config\config.json') -Value '{"value":"current"}' -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $guardDestRoot 'notes.txt') -Value 'unrelated change' -Encoding UTF8
+    $unrelatedBlocked = $false
+    try {
+        & $snapshotScript -SourceRoot $guardSourceRoot -DestinationRoot $guardDestRoot -RuntimeRoot $guardRuntimeRoot -Force | Out-Host
+    }
+    catch {
+        $unrelatedBlocked = $_.Exception.Message -like 'Destination git workspace is dirty*'
+    }
+    Assert-True $unrelatedBlocked 'blocks unrelated dirty destination files'
+
     $fakeRepoRoot = Join-Path $caseRoot 'fake-repo'
     $fakeToolsRoot = Join-Path $fakeRepoRoot 'tools'
     $fakeRuntimeRoot = Join-Path $caseRoot 'winps-runtime'
