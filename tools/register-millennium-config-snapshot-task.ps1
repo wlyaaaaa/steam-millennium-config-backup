@@ -25,6 +25,8 @@ $weeklyTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 19:30
 $settings = New-ScheduledTaskSettingsSet `
     -MultipleInstances IgnoreNew `
     -StartWhenAvailable `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Minutes 15) `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
 
 $principal = New-ScheduledTaskPrincipal `

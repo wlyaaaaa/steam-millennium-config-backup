@@ -2,6 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $snapshotScript = Join-Path $repoRoot 'tools\snapshot-millennium-config.ps1'
+$registrationScript = Join-Path $repoRoot 'tools\register-millennium-config-snapshot-task.ps1'
 
 $script:Failures = 0
 
@@ -28,6 +29,10 @@ function Assert-False {
 
     Assert-True (-not $Condition) $Name
 }
+
+$registrationSource = Get-Content -LiteralPath $registrationScript -Raw
+Assert-True ($registrationSource -match '(?m)^\s*-RestartCount\s+3\s+`?\s*$') 'scheduled snapshot retries transient failures three times'
+Assert-True ($registrationSource -match '(?m)^\s*-RestartInterval\s+\(New-TimeSpan\s+-Minutes\s+15\)\s+`?\s*$') 'scheduled snapshot spaces retries by fifteen minutes'
 
 $caseRoot = Join-Path $env:TEMP ("millennium-snapshot-test-" + [guid]::NewGuid().ToString('N'))
 $sourceRoot = Join-Path $caseRoot 'source'
