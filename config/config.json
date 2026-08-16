@@ -35,14 +35,20 @@
     "allowedStyles": true,
     "conditions": {
       "Adwaita-for-Steam": {
-        "Color theme": "Default",
+        "Accent color": "System",
+        "Color scheme": "System",
+        "Color theme": "Adwaita",
         "Font": "Adwaita",
         "Hide What's New shelf": "no",
+        "Hide games list": "no",
         "Keep pointer cursor for clickable elements": "no",
         "Login QR code": "Show",
+        "Pointer cursor": "no",
         "Remove rounded corners": "no",
+        "Rounded corners": "yes",
         "Show Library sidebar on hover": "no",
         "Show URL": "no",
+        "What's New shelf": "yes",
         "Window controls layout": "Adwaita",
         "Window controls theme": "Adwaita (GNOME)"
       },
@@ -68,7 +74,8 @@
         "Titlebar Size": "Normal",
         "Transparency Effects": "yes",
         "Waifu Position": "Bottom Right",
-        "Waifu Presence": "Fade"
+        "Waifu Presence": "Fade",
+        "Waifu Scale": "100"
       }
     },
     "themeColors": {
@@ -129,7 +136,14 @@
         "--custom-color-foreground": "0, 255, 42",
         "--custom-color-ingame": "35, 165, 90",
         "--custom-color-offline": "128, 132, 142",
-        "--custom-color-online": "35, 165, 90"
+        "--custom-color-online": "35, 165, 90",
+        "--option-rgb-blend-background": "210, 115, 138",
+        "--option-rgb-blend-foreground": "193, 180, 146",
+        "--option-rgb-status-away": "240, 178, 50",
+        "--option-rgb-status-disturb": "242, 63, 67",
+        "--option-rgb-status-ingame": "35, 165, 90",
+        "--option-rgb-status-offline": "128, 132, 142",
+        "--option-rgb-status-online": "35, 165, 90"
       }
     }
   }

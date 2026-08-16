@@ -3,7 +3,7 @@
 本仓库是 **Steam + [Millennium](https://github.com/SteamClientHomebrew/Millennium) 库管理器** 的配置快照备份，用于在重装系统、迁移设备或误操作后快速恢复个性化设置。
 
 > 备份来源：`C:\Program Files (x86)\Steam\millennium`
-> 备份日期：2026-07-05
+> 备份日期：2026-08-16
 
 ---
 
