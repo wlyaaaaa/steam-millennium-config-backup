@@ -114,6 +114,34 @@ try {
     }
     Assert-True $unrelatedBlocked 'blocks unrelated dirty destination files'
 
+    $overlapRoot = Join-Path $caseRoot 'overlap-root'
+    $overlapRuntimeRoot = Join-Path $caseRoot 'overlap-runtime'
+    New-Item -ItemType Directory -Force -Path (Join-Path $overlapRoot 'config') | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $overlapRoot 'plugins\sample-plugin') | Out-Null
+    Set-Content -LiteralPath (Join-Path $overlapRoot 'config\config.json') -Value '{"value":"must-remain"}' -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $overlapRoot 'plugins\sample-plugin\private.bin') -Value 'must-remain' -Encoding UTF8
+
+    $overlapBlocked = $false
+    try {
+        & $snapshotScript -SourceRoot $overlapRoot -DestinationRoot $overlapRoot -RuntimeRoot $overlapRuntimeRoot -Force -AllowDirtyDestination | Out-Host
+    }
+    catch {
+        $overlapBlocked = $_.Exception.Message -like 'SourceRoot and DestinationRoot must not overlap*'
+    }
+    Assert-True $overlapBlocked 'blocks identical source and destination roots before mutation'
+    Assert-True (Test-Path -LiteralPath (Join-Path $overlapRoot 'plugins\sample-plugin\private.bin')) 'preserves source-only files when overlap is rejected'
+
+    $nestedDestinationRoot = Join-Path $overlapRoot 'nested-destination'
+    $nestedBlocked = $false
+    try {
+        & $snapshotScript -SourceRoot $overlapRoot -DestinationRoot $nestedDestinationRoot -RuntimeRoot $overlapRuntimeRoot -Force -AllowDirtyDestination | Out-Host
+    }
+    catch {
+        $nestedBlocked = $_.Exception.Message -like 'SourceRoot and DestinationRoot must not overlap*'
+    }
+    Assert-True $nestedBlocked 'blocks nested destination roots before creating them'
+    Assert-False (Test-Path -LiteralPath $nestedDestinationRoot) 'does not create a rejected nested destination'
+
     $fakeRepoRoot = Join-Path $caseRoot 'fake-repo'
     $fakeToolsRoot = Join-Path $fakeRepoRoot 'tools'
     $fakeRuntimeRoot = Join-Path $caseRoot 'winps-runtime'

@@ -66,6 +66,23 @@ function Get-FullPath {
     return [System.IO.Path]::GetFullPath($Path)
 }
 
+function Test-PathsOverlap {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Left,
+        [Parameter(Mandatory = $true)] [string] $Right
+    )
+
+    $leftFull = (Get-FullPath $Left).TrimEnd('\', '/')
+    $rightFull = (Get-FullPath $Right).TrimEnd('\', '/')
+    if ($leftFull.Equals($rightFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    $separator = [System.IO.Path]::DirectorySeparatorChar
+    return $leftFull.StartsWith($rightFull + $separator, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $rightFull.StartsWith($leftFull + $separator, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function Assert-ChildPath {
     param(
         [Parameter(Mandatory = $true)] [string] $Parent,
@@ -270,6 +287,11 @@ function Test-ThrottleWindow {
 }
 
 $resolvedSource = Get-MillenniumSourceRoot -ExplicitSourceRoot $SourceRoot
+$destinationFull = Get-FullPath $DestinationRoot
+if (Test-PathsOverlap -Left $resolvedSource -Right $destinationFull) {
+    throw "SourceRoot and DestinationRoot must not overlap. Source=$resolvedSource Destination=$destinationFull"
+}
+
 New-Item -ItemType Directory -Force -Path $DestinationRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $RuntimeRoot | Out-Null
 
