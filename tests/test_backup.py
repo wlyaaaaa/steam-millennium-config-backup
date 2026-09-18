@@ -504,5 +504,117 @@ class BackupTests(unittest.TestCase):
         put(self.dest,m.MANIFEST,m.make_manifest(files));target=self.root/'target';fixture(target)
         self.assertEqual(m.restore_plan(self.dest,target)[0]['status'],'blocked')
 
+    def test_retry_after_preimage_interruption_returns_rollback_id(self):
+        self.snap()
+        target = self.root / 'target'; fixture(target)
+        put(target, 'config/config.json', core('old-target'))
+        before = (target / 'config/config.json').read_bytes()
+        plan, _ = m.restore_plan(self.dest, target)
+        original = m.atomic_json
+        def interrupt(path, value):
+            if path.name == 'rollback.json' and value.get('status') == 'prepared':
+                raise KeyboardInterrupt('interrupted before record publication')
+            return original(path, value)
+        with mock.patch.object(m, 'atomic_json', side_effect=interrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        incomplete = next((target / '.millennium-restore-history').iterdir())
+        preserved = file_view(incomplete)
+        self.assertEqual((target / 'config/config.json').read_bytes(), before)
+        result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        self.assertEqual(result['status'], 'complete')
+        self.assertIn('restore_history_needs_attention', result['warnings'])
+        self.assertEqual(file_view(incomplete), preserved)
+        self.assertEqual(m.rollback_restore(target, result['rollback_id'])['status'], 'rolled_back')
+        self.assertEqual((target / 'config/config.json').read_bytes(), before)
+
+    def test_restore_preserves_malformed_and_unfinished_history(self):
+        self.snap(); target = self.root / 'target'; fixture(target)
+        history = target / '.millennium-restore-history'
+        inputs = [b'{', b'[]', b'{}']
+        for state in ('prepared', 'future-state'):
+            identifier = m.generation_id()
+            inputs.append((identifier, m.encoded({'schema':'millennium.restore-rollback.v2',
+                'id':identifier, 'target':m.norm(target), 'status':state})))
+        preserved = {}
+        for value in inputs:
+            identifier, data = value if isinstance(value, tuple) else (m.generation_id(), value)
+            put(history / identifier, 'rollback.json', data)
+            preserved[identifier] = data
+        plan, _ = m.restore_plan(self.dest, target)
+        result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(len(result['history_cleanup']['issues']), len(inputs))
+        for identifier, data in preserved.items():
+            self.assertEqual((history / identifier / 'rollback.json').read_bytes(), data)
+        self.assertEqual(m.rollback_restore(target, result['rollback_id'])['status'], 'rolled_back')
+
+    def test_history_cleanup_failure_does_not_fail_successful_restore(self):
+        self.snap(); target = self.root / 'target'; fixture(target)
+        for n in range(4):
+            put(target, 'config/config.json', core(str(n)))
+            plan, _ = m.restore_plan(self.dest, target)
+            m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        original = m.remove_owned_tree
+        def denied(path):
+            if path.parent.name == '.millennium-restore-history':
+                raise PermissionError('fixture cleanup denied')
+            return original(path)
+        put(target, 'config/config.json', core('final-preimage'))
+        before = (target / 'config/config.json').read_bytes()
+        plan, _ = m.restore_plan(self.dest, target)
+        with mock.patch.object(m, 'remove_owned_tree', side_effect=denied):
+            result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(result['history_cleanup']['status'], 'needs_attention')
+        self.assertIn('restore_history_needs_attention', result['warnings'])
+        m.rollback_restore(target, result['rollback_id'])
+        self.assertEqual((target / 'config/config.json').read_bytes(), before)
+
+    def test_restore_history_enumeration_failure_is_a_warning(self):
+        self.snap(); target = self.root / 'target'; fixture(target)
+        plan, _ = m.restore_plan(self.dest, target)
+        original = Path.iterdir
+        def denied(path):
+            if path == target / '.millennium-restore-history':
+                raise PermissionError('fixture enumeration denied')
+            return original(path)
+        with mock.patch.object(Path, 'iterdir', denied):
+            result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(result['history_cleanup']['status'], 'needs_attention')
+        self.assertEqual(m.rollback_restore(target, result['rollback_id'])['status'], 'rolled_back')
+
+    def test_restore_retention_always_pins_new_current(self):
+        self.snap(); target = self.root / 'target'; fixture(target)
+        history = target / '.millennium-restore-history'
+        for n in range(6):
+            if history.exists():
+                for item in history.iterdir():
+                    os.utime(item, (2000000000 + n, 2000000000 + n))
+            put(target, 'config/config.json', core(str(n)))
+            plan, _ = m.restore_plan(self.dest, target)
+            result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+            self.assertTrue((history / result['rollback_id'] / 'rollback.json').is_file())
+            self.assertLessEqual(len(list(history.iterdir())), 4)
+        self.assertEqual(m.rollback_restore(target, result['rollback_id'])['status'], 'rolled_back')
+
+    def test_terminal_restore_record_is_not_rewritten_after_commit(self):
+        self.snap(); target = self.root / 'target'; fixture(target)
+        plan, _ = m.restore_plan(self.dest, target)
+        original = m.atomic_json
+        counts = {}
+        def count_terminal(path, value):
+            if path.name == 'rollback.json' and value.get('status') in ('complete', 'rolled_back'):
+                key = value['status']
+                counts[key] = counts.get(key, 0) + 1
+                if counts[key] > 1:
+                    raise OSError('duplicate post-commit record write')
+            return original(path, value)
+        with mock.patch.object(m, 'atomic_json', side_effect=count_terminal):
+            result = m.restore(self.dest, target, expected_plan=plan['plan_sha256'])
+            m.rollback_restore(target, result['rollback_id'])
+        self.assertEqual(counts, {'complete':1, 'rolled_back':1})
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

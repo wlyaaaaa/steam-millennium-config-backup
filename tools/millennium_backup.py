@@ -21,7 +21,7 @@ import sys
 import uuid
 from typing import Any, Callable
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 SCHEMA = "millennium.snapshot.v2"
 MANIFEST = "snapshot-manifest.json"
 MANAGED = ("config", "plugins", "themes")
@@ -901,6 +901,47 @@ def restore_plan(bundle: Path, target: Path) -> tuple[dict, dict[str, bytes]]:
     return plan, writes
 
 
+def prune_restore_history(target: Path, current: str) -> dict:
+    """Best-effort retention after a committed restore; never hide its rollback ID.
+
+    Incomplete/unreadable records are preserved for inspection. The new restore is
+    pinned even when an older directory has a newer timestamp. Caller holds lock.
+    """
+    result = {"status": "complete", "pruned_records": 0, "issues": []}
+    try:
+        history = no_links(target / ".millennium-restore-history")
+        completed = []
+        for item in history.iterdir():
+            if not GENERATION.fullmatch(item.name):
+                continue
+            try:
+                no_links(item)
+                candidate = parse_json(read_bytes(item / "rollback.json"), "rollback")
+                if (not isinstance(candidate, dict) or
+                        candidate.get("schema") != "millennium.restore-rollback.v2" or
+                        candidate.get("id") != item.name or candidate.get("target") != norm(target)):
+                    raise BackupError("invalid_restore_history_record")
+                if candidate.get("status") not in ("complete", "rolled_back", "aborted"):
+                    raise BackupError("incomplete_restore_history_record")
+                if item.name != current:
+                    completed.append((item.stat().st_mtime_ns, item.name, item))
+            except (BackupError, OSError) as exc:
+                result["issues"].append({"record": item.name,
+                    "reason": str(exc) if isinstance(exc, BackupError) else type(exc).__name__})
+        # Four completed records in total: current plus three predecessors.
+        for _, name, item in sorted(completed, reverse=True)[3:]:
+            try:
+                remove_owned_tree(item)
+                result["pruned_records"] += 1
+            except (BackupError, OSError) as exc:
+                result["issues"].append({"record": name, "reason": "cleanup_" + type(exc).__name__})
+    except (BackupError, OSError) as exc:
+        result["issues"].append({"record": None, "reason": "enumeration_" + type(exc).__name__})
+    if result["issues"]:
+        result["status"] = "needs_attention"
+    return result
+
+
 def restore(bundle: Path, target: Path, *, expected_plan: str, fault=None) -> dict:
     target = no_links(target)
     with writer_lock(target):
@@ -921,19 +962,14 @@ def restore(bundle: Path, target: Path, *, expected_plan: str, fault=None) -> di
                   "files": plan["files"], "created_utc": utc(), "status": "prepared"}
         atomic_json(archive / "rollback.json", record)
         transact(target, writes, before={e["path"]: e["before"] for e in plan["files"]}, fault=fault, purpose="restore", restore_record=identifier)
-        record["status"] = "complete"
-        atomic_json(archive / "rollback.json", record)
-        history = no_links(target / ".millennium-restore-history")
-        completed = []
-        for item in history.iterdir():
-            if GENERATION.fullmatch(item.name) and item.is_dir():
-                candidate = parse_json(read_bytes(no_links(item / "rollback.json")), "rollback")
-                if candidate.get("target") == norm(target) and candidate.get("status") in ("complete", "rolled_back", "aborted"):
-                    completed.append(item)
-        for item in sorted(completed, key=lambda p: p.stat().st_mtime_ns, reverse=True)[4:]:
-            remove_owned_tree(item)
+        # transact has already durably finalized the rollback record.
+        retention = prune_restore_history(target, identifier)
+        warnings = list(plan["warnings"])
+        if retention["status"] != "complete":
+            warnings.append("restore_history_needs_attention")
         return {"schema": "millennium.restore.v2", "status": "complete", "rollback_id": identifier,
-                "verified_files": len(writes), "ui_acceptance": "not_performed", "warnings": plan["warnings"]}
+                "verified_files": len(writes), "ui_acceptance": "not_performed",
+                "warnings": warnings, "history_cleanup": retention}
 
 
 def rollback_restore(target: Path, identifier: str) -> dict:
@@ -960,8 +996,7 @@ def rollback_restore(target: Path, identifier: str) -> dict:
                 raise BackupError("rollback_preimage_corrupt")
             writes[p] = b
         transact(target, writes, before={e["path"]: e["after"] for e in record["files"]}, purpose="restore", restore_record=identifier, final_restore_status="rolled_back")
-        record["status"] = "rolled_back"
-        atomic_json(archive / "rollback.json", record)
+        # transact owns the durable terminal record; do not rewrite it afterward.
         return {"schema": "millennium.restore.v2", "status": "rolled_back", "rollback_id": identifier, "verified_files": len(writes)}
 
 
