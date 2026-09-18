@@ -48,11 +48,13 @@
         "Rounded corners": "yes",
         "Show Library sidebar on hover": "no",
         "Show URL": "no",
+        "Square icons in game details": "yes",
         "What's New shelf": "yes",
         "Window controls layout": "Adwaita",
         "Window controls theme": "Adwaita (GNOME)"
       },
       "Zehn": {
+        "Avatar Frame": "no",
         "Avatar Shape": "Round",
         "Background Color Mix": "100",
         "Color Mode": "Light",
@@ -61,6 +63,7 @@
         "Content Roundness": "0",
         "Display Waifu": "no",
         "Download Preview Width": "250",
+        "Embed Size": "640",
         "Foreground Color Mix": "50",
         "Navbar Size": "Normal",
         "Panel Roundness": "4",

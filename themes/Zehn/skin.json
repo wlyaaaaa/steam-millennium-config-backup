@@ -1,607 +1,715 @@
 {
   "Conditions": {
-    "Avatar Shape": {
-      "description": "Select the avatar shape.",
-      "tab": "Personalization",
+    "Avatar Frame": {
+      "default": "no",
+      "description": "Show frames on avatars.",
       "section": "Appearance",
+      "tab": "Personalization",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/appearance/avatar frame/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/appearance/avatar frame/on.css"
+          }
+        }
+      }
+    },
+    "Avatar Shape": {
       "default": "Round",
+      "description": "Select the avatar shape.",
+      "section": "Appearance",
+      "tab": "Personalization",
       "values": {
         "Round": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/appearance/avatar shape/round.css"
           }
         },
         "Square": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/appearance/avatar shape/square.css"
           }
         }
       }
     },
-    "Scrollbar Style": {
-      "description": "Select the style of scrollbar.",
-      "tab": "Personalization",
-      "section": "Appearance",
-      "default": "Hidden",
-      "values": {
-        "Hidden": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/appearance/scrollbar style/hidden.css"
-          }
-        },
-        "Windows": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/appearance/scrollbar style/windows.css"
-          }
-        },
-        "Steam": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/appearance/scrollbar style/steam.css"
-          }
-        }
-      }
+    "Background Color Mix": {
+      "default": 0,
+      "description": "Adjust how much color is blended into the background.",
+      "section": "Themes",
+      "slider": {
+        "cssVariable": "--option-background-color-mix",
+        "max": 100,
+        "min": 0,
+        "step": 1,
+        "unit": "%"
+      },
+      "tab": "Personalization"
     },
     "Color Mode": {
-      "description": "Choose your color.\n\nAuto mode will select either light or dark mode based on your system settings.",
-      "tab": "Personalization",
-      "section": "Colors",
       "default": "Auto",
+      "description": "Choose your color.\n\nAuto mode will select either light or dark mode based on your system settings.",
+      "section": "Colors",
+      "tab": "Personalization",
       "values": {
         "Auto": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/colors/color mode/auto.css"
           }
         },
         "Dark": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/colors/color mode/dark.css"
           }
         },
         "Light": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/colors/color mode/light.css"
           }
         }
       }
     },
-    "Transparency Effects": {
-      "description": "Windows and surfaces appear translucent. Enables support for Reveal and Acrylic effects.\n\nAllows behind-window blur when used with DWMX plugin.",
-      "tab": "Personalization",
-      "section": "Colors",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/colors/transparency effects/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/colors/transparency effects/on.css"
-          }
-        }
-      }
-    },
-    "Show Accent Color on Window Borders": {
-      "description": "Show accent color on window borders when focused.",
-      "tab": "Personalization",
-      "section": "Colors",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/colors/show accent color on window borders/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/colors/show accent color on window borders/on.css"
-          }
-        }
-      }
-    },
-    "Background Color Mix": {
-      "description": "Adjust how much color is blended into the background.",
-      "tab": "Personalization",
-      "section": "Themes",
-      "default": 0,
-      "slider": {
-        "cssVariable": "--option-background-color-mix",
-        "min": 0,
-        "max": 100,
-        "step": 1,
-        "unit": "%"
-      }
-    },
-    "Foreground Color Mix": {
-      "description": "Adjust how much color is blended into the foreground.",
-      "tab": "Personalization",
-      "section": "Themes",
-      "default": 0,
-      "slider": {
-        "cssVariable": "--option-foreground-color-mix",
-        "min": 0,
-        "max": 100,
-        "step": 1,
-        "unit": "%"
-      }
-    },
     "Color Space": {
-      "description": "Select the color space used in blending.",
-      "tab": "Personalization",
-      "section": "Themes",
       "default": "sRGB",
+      "description": "Select the color space used in blending.",
+      "section": "Themes",
+      "tab": "Personalization",
       "values": {
-        "sRGB": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/personalization/themes/color space/srgb.css"
-          }
-        },
         "LAB": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/themes/color space/lab.css"
           }
         },
         "okLAB": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/personalization/themes/color space/oklab.css"
           }
-        }
-      }
-    },
-    "Show Tooltips": {
-      "description": "Show tooltips and miniprofiles in the client.",
-      "tab": "Scale and Layout",
-      "section": "General",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/general/show tooltips/off.css"
-          }
         },
-        "yes": {
+        "sRGB": {
           "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/general/show tooltips/on.css"
-          }
-        }
-      }
-    },
-    "Titlebar Size": {
-      "description": "Choose the size of window titlebars.",
-      "tab": "Scale and Layout",
-      "section": "Navigation",
-      "default": "Normal",
-      "values": {
-        "Normal": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/titlebar size/normal.css"
-          }
-        },
-        "Thick": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/titlebar size/thick.css"
-          }
-        }
-      }
-    },
-    "Navbar Size": {
-      "description": "Choose the size of the navbar (the titlebar of the library window).",
-      "tab": "Scale and Layout",
-      "section": "Navigation",
-      "default": "Normal",
-      "values": {
-        "Normal": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/navbar size/normal.css"
-          }
-        },
-        "Thick": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/navbar size/thick.css"
-          }
-        }
-      }
-    },
-    "Download Preview Width": {
-      "description": "Adjust the width of the download preview.",
-      "tab": "Scale and Layout",
-      "section": "Navigation",
-      "default": 250,
-      "slider": {
-        "cssVariable": "--option-download-preview-width",
-        "min": 200,
-        "max": 500,
-        "step": 50,
-        "unit": "px"
-      }
-    },
-    "Show Account Avatar": {
-      "description": "Show your avatar on the account button instead of an icon.",
-      "tab": "Scale and Layout",
-      "section": "Navigation",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/show account avatar/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/show account avatar/on.css"
-          }
-        }
-      }
-    },
-    "Show URL Bar": {
-      "description": "Show the URL bar on internal browser tab pages.",
-      "tab": "Scale and Layout",
-      "section": "Navigation",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/show url bar/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/navigation/show url bar/on.css"
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/themes/color space/srgb.css"
           }
         }
       }
     },
     "Content Mode": {
-      "description": "Select how content is displayed in the library.\n\nPresently only affects collections and showcases. WIP!",
-      "tab": "Scale and Layout",
-      "section": "Library",
       "default": "Panel",
+      "description": "Select how content is displayed on the library.\n\nPresently only affects collections and showcases. WIP!",
+      "section": "Library",
+      "tab": "Scale and Layout",
       "values": {
-        "Panel": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/library/content mode/panel.css"
-          }
-        },
         "Flat": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/scale and layout/library/content mode/flat.css"
           }
+        },
+        "Panel": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/library/content mode/panel.css"
+          }
         }
-      }
-    },
-    "Panel Roundness": {
-      "description": "Adjust the corner roundness of panels.",
-      "tab": "Scale and Layout",
-      "section": "Library",
-      "default": 4,
-      "slider": {
-        "cssVariable": "--option-panel-roundness",
-        "min": 0,
-        "max": 8,
-        "step": 2,
-        "unit": "px"
       }
     },
     "Content Roundness": {
-      "description": "Adjust the corner roundness of content.",
-      "tab": "Scale and Layout",
-      "section": "Library",
       "default": 0,
+      "description": "Adjust the corner roundness of content.",
+      "section": "General",
       "slider": {
         "cssVariable": "--option-content-roundness",
-        "min": 0,
         "max": 8,
+        "min": 0,
         "step": 2,
         "unit": "px"
-      }
-    },
-    "Show Add Shelf": {
-      "description": "Show the Add Shelf panel.",
-      "tab": "Scale and Layout",
-      "section": "Library",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/library/show add shelf/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/library/show add shelf/on.css"
-          }
-        }
-      }
-    },
-    "Show What's New": {
-      "description": "Show the What's New panel.",
-      "tab": "Scale and Layout",
-      "section": "Library",
-      "default": "yes",
-      "values": {
-        "no": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/library/show whats new/off.css"
-          }
-        },
-        "yes": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/scale and layout/library/show whats new/on.css"
-          }
-        }
-      }
+      },
+      "tab": "Scale and Layout"
     },
     "Display Waifu": {
-      "description": "Display your waifu on the library.\n\nList your waifus directly in `waifus.json` within the skin folder or in `/waifus/waifus.json` within the Steam loopback directory.",
-      "tab": "Features",
-      "section": "Waifu",
       "default": "no",
+      "description": "Display your waifu on the library.\n\nList your waifus directly in `waifus.json` within the skin folder or in `/waifus/waifus.json` within the Steam loopback directory.",
+      "section": "Waifu",
+      "tab": "Features",
       "values": {
         "no": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/display waifu/off.css"
           }
         },
         "yes": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/display waifu/on.css"
           }
         }
       }
     },
-    "Waifu Position": {
-      "description": "Select where your waifu is placed.",
-      "tab": "Features",
-      "section": "Waifu",
-      "default": "Bottom Right",
+    "Download Preview Width": {
+      "default": 250,
+      "description": "Adjust the width of the download preview.",
+      "section": "Navigation",
+      "slider": {
+        "cssVariable": "--option-download-preview-width",
+        "max": 500,
+        "min": 200,
+        "step": 50,
+        "unit": "px"
+      },
+      "tab": "Scale and Layout"
+    },
+    "Embed Size": {
+      "default": 640,
+      "description": "Adjust the size of chat embed panels.\n\nEmbeds dynamically resize based on the width of the chat window, but are limited in width/height by this constraint.",
+      "section": "Chat",
+      "slider": {
+        "cssVariable": "--option-embed-size",
+        "max": 1024,
+        "min": 256,
+        "step": 32,
+        "unit": "px"
+      },
+      "tab": "Scale and Layout"
+    },
+    "Foreground Color Mix": {
+      "default": 0,
+      "description": "Adjust how much color is blended into the foreground.",
+      "section": "Themes",
+      "slider": {
+        "cssVariable": "--option-foreground-color-mix",
+        "max": 100,
+        "min": 0,
+        "step": 1,
+        "unit": "%"
+      },
+      "tab": "Personalization"
+    },
+    "Navbar Size": {
+      "default": "Normal",
+      "description": "Choose the size of the navbar (the titlebar of the library window).",
+      "section": "Navigation",
+      "tab": "Scale and Layout",
       "values": {
-        "Top": {
+        "Normal": {
           "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu position/top.css"
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/navbar size/normal.css"
           }
         },
+        "Thick": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/navbar size/thick.css"
+          }
+        }
+      }
+    },
+    "Panel Roundness": {
+      "default": 0,
+      "description": "Adjust the corner roundness of panels.",
+      "section": "General",
+      "slider": {
+        "cssVariable": "--option-panel-roundness",
+        "max": 8,
+        "min": 0,
+        "step": 2,
+        "unit": "px"
+      },
+      "tab": "Scale and Layout"
+    },
+    "Scrollbar Style": {
+      "default": "Hidden",
+      "description": "Select the style of scrollbar.",
+      "section": "Appearance",
+      "tab": "Personalization",
+      "values": {
+        "Hidden": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/appearance/scrollbar style/hidden.css"
+          }
+        },
+        "Steam": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/appearance/scrollbar style/steam.css"
+          }
+        },
+        "Windows": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/appearance/scrollbar style/windows.css"
+          }
+        }
+      }
+    },
+    "Show Accent Color on Window Borders": {
+      "default": "yes",
+      "description": "Show accent color on window borders when focused.",
+      "section": "Colors",
+      "tab": "Personalization",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/colors/show accent color on window borders/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/colors/show accent color on window borders/on.css"
+          }
+        }
+      }
+    },
+    "Show Account Avatar": {
+      "default": "yes",
+      "description": "Show your avatar on the account button instead of an icon.",
+      "section": "Navigation",
+      "tab": "Scale and Layout",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/show account avatar/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/show account avatar/on.css"
+          }
+        }
+      }
+    },
+    "Show Add Shelf": {
+      "default": "yes",
+      "description": "Show the Add Shelf panel.",
+      "section": "Library",
+      "tab": "Scale and Layout",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/library/show add shelf/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/library/show add shelf/on.css"
+          }
+        }
+      }
+    },
+    "Show Tooltips": {
+      "default": "yes",
+      "description": "Show tooltips and miniprofiles in the client.",
+      "section": "General",
+      "tab": "Scale and Layout",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/general/show tooltips/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/general/show tooltips/on.css"
+          }
+        }
+      }
+    },
+    "Show URL Bar": {
+      "default": "yes",
+      "description": "Show the URL bar on internal browser tab pages.",
+      "section": "Navigation",
+      "tab": "Scale and Layout",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/show url bar/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/show url bar/on.css"
+          }
+        }
+      }
+    },
+    "Show What's New": {
+      "default": "yes",
+      "description": "Show the What's New panel.",
+      "section": "Library",
+      "tab": "Scale and Layout",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/library/show whats new/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/library/show whats new/on.css"
+          }
+        }
+      }
+    },
+    "Titlebar Size": {
+      "default": "Normal",
+      "description": "Choose the size of window titlebars.",
+      "section": "Navigation",
+      "tab": "Scale and Layout",
+      "values": {
+        "Normal": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/titlebar size/normal.css"
+          }
+        },
+        "Thick": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/scale and layout/navigation/titlebar size/thick.css"
+          }
+        }
+      }
+    },
+    "Transparency Effects": {
+      "default": "yes",
+      "description": "Windows and surfaces appear translucent. Enables support for Reveal and Acrylic effects.\n\nAllows behind-window blur when used with DWMX plugin.",
+      "section": "Colors",
+      "tab": "Personalization",
+      "values": {
+        "no": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/colors/transparency effects/off.css"
+          }
+        },
+        "yes": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/personalization/colors/transparency effects/on.css"
+          }
+        }
+      }
+    },
+    "Waifu Position": {
+      "default": "Bottom Right",
+      "description": "Select where your waifu is placed.",
+      "section": "Waifu",
+      "tab": "Features",
+      "values": {
         "Bottom": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/waifu position/bottom.css"
-          }
-        },
-        "Left": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu position/left.css"
-          }
-        },
-        "Right": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu position/right.css"
-          }
-        },
-        "Top Left": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu position/top left.css"
-          }
-        },
-        "Top Right": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu position/top right.css"
           }
         },
         "Bottom Left": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/waifu position/bottom left.css"
           }
         },
         "Bottom Right": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/waifu position/bottom right.css"
+          }
+        },
+        "Left": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu position/left.css"
+          }
+        },
+        "Right": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu position/right.css"
+          }
+        },
+        "Top": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu position/top.css"
+          }
+        },
+        "Top Left": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu position/top left.css"
+          }
+        },
+        "Top Right": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu position/top right.css"
           }
         }
       }
     },
     "Waifu Presence": {
-      "description": "Select what your waifu does when Steam is focused.",
-      "tab": "Features",
-      "section": "Waifu",
       "default": "Fade",
+      "description": "Select what your waifu does when Steam is focused.",
+      "section": "Waifu",
+      "tab": "Features",
       "values": {
-        "Stay": {
-          "TargetCss": {
-            "affects": [".*"],
-            "src": "option/features/waifu/waifu presence/stay.css"
-          }
-        },
         "Fade": {
           "TargetCss": {
-            "affects": [".*"],
+            "affects": [
+              ".*"
+            ],
             "src": "option/features/waifu/waifu presence/fade.css"
+          }
+        },
+        "Stay": {
+          "TargetCss": {
+            "affects": [
+              ".*"
+            ],
+            "src": "option/features/waifu/waifu presence/stay.css"
           }
         }
       }
     },
     "Waifu Scale": {
-      "description": "Adjust the scale of your waifu.",
-      "tab": "Features",
-      "section": "Waifu",
       "default": 100,
+      "description": "Adjust the scale of your waifu.",
+      "section": "Waifu",
       "slider": {
         "cssVariable": "--option-waifu-scale",
-        "min": 0,
         "max": 100,
+        "min": 0,
         "step": 1,
         "unit": "%"
-      }
+      },
+      "tab": "Features"
     }
   },
   "Patches": [
     {
-      "MatchRegexString": "Extensions",
-      "TargetCss": "patch/plugins.css",
-      "TargetJs": "patch/plugins.js"
-    },
-    {
-      "MatchRegexString": ".l25AfossKXBOZGYoty0tM",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "/Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录蒸汽平台|登录 Steam|Iniciar sesión en Steam|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Увійти до Steam|Đăng nhập vào Steam/",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "https://.*.steampowered.com",
-      "TargetCss": "patch/webkit.css",
-      "TargetJs": "patch/webkit.js"
-    },
-    {
-      "MatchRegexString": "https://steamcommunity.com",
-      "TargetCss": "patch/webkit.css",
-      "TargetJs": "patch/webkit.js"
-    },
-    {
-      "MatchRegexString": "^Steam$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "/Steam — Lista de jogos|Steam: spellenlijst|Liste der Steam-Spiele|Steam : liste de jeux|Steam-pelien lista|Lista jocurilor de pe Steam|Steam-spilliste|Steam – seznam her|Steam Games List|Danh sách trò chơi Steam|Списък със Steam игри|Λίστα παιχνιδιών Steam|Steam-spellista|Steam 游戏列表|Steam 게임 목록|Steam – liste over spill|Список игр в Steam|Steam: Lista de jogos|蒸汽平台游戏列表|รายชื่อเกมบน Steam|Lista de juegos de Steam|Cписок ігор у Steam|Steam 遊戲列表|Lista de juegos de Steam|Steam Oyun Listesi|Daftar Game Steam|Steamゲームリスト|Lista gier Steam|Steam játéklista|Elenco dei giochi di Steam/",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "^OverlayBrowser_Browser$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "^SP Overlay:",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "Supernav$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "^notificationtoasts_",
-      "TargetCss": "patch/notifications.css",
-      "TargetJs": "patch/notifications.js"
-    },
-    {
-      "MatchRegexString": "^SteamBrowser_Find$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": "^OverlayTab\\d+_Find$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
       "MatchRegexString": "^Steam Big Picture Mode$",
-      "TargetCss": "patch/bigpicture.css",
-      "TargetJs": "patch/bigpicture.js"
+      "TargetCss": "css/min.css",
+      "TargetJs": "js/bigpicture.js"
     },
     {
       "MatchRegexString": "^QuickAccess_",
-      "TargetCss": "patch/bigpicture.css",
-      "TargetJs": "patch/bigpicture.js"
+      "TargetCss": "css/min.css",
+      "TargetJs": "js/bigpicture.js"
     },
     {
       "MatchRegexString": "^MainMenu_",
-      "TargetCss": "patch/bigpicture.css",
-      "TargetJs": "patch/bigpicture.js"
-    },
-    {
-      "MatchRegexString": ".SavedDimensionsPopup",
-      "TargetCss": "patch/friends.css",
-      "TargetJs": "patch/friends.js"
-    },
-    {
-      "MatchRegexString": ".ChatPopup",
-      "TargetCss": "patch/friends.css",
-      "TargetJs": "patch/friends.js"
-    },
-    {
-      "MatchRegexString": ".HoverPopup",
-      "TargetCss": "patch/friends.css",
-      "TargetJs": "patch/friends.js"
-    },
-    {
-      "MatchRegexString": "Menu$",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": ".ModalDialogPopup",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
-    },
-    {
-      "MatchRegexString": ".FullModalOverlay",
-      "TargetCss": "patch/library.css",
-      "TargetJs": "patch/library.js"
+      "TargetCss": "css/min.css",
+      "TargetJs": "js/bigpicture.js"
     },
     {
       "MatchRegexString": "broadcaststatus",
-      "TargetCss": "patch/broadcast.css",
-      "TargetJs": "patch/broadcast.js"
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/broadcast.js"
+    },
+    {
+      "MatchRegexString": ".l25AfossKXBOZGYoty0tM",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/controller.js"
+    },
+    {
+      "MatchRegexString": ".SavedDimensionsPopup",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/friends.js"
+    },
+    {
+      "MatchRegexString": ".ChatPopup",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/friends.js"
+    },
+    {
+      "MatchRegexString": "^Steam$",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/library.js"
+    },
+    {
+      "MatchRegexString": "/قائمة ألعاب Steam|Steam — Lista de jogos|Steam: spellenlijst|Liste der Steam-Spiele|Steam : liste de jeux|Steam-pelien lista|Lista jocurilor de pe Steam|Steam-spilliste|Steam – seznam her|Steam Games List|Danh sách trò chơi Steam|Списък със Steam игри|Λίστα παιχνιδιών Steam|Steam-spellista|Steam 游戏列表|Steam 게임 목록|Lista de juegos de Steam|Senarai Permainan Steam|Steam – liste over spill|Список игр в Steam|Steam: Lista de jogos|蒸汽平台游戏列表|รายชื่อเกมบน Steam|Lista de juegos de Steam|Cписок ігор у Steam|Steam 遊戲列表|Lista de juegos de Steam|Steam Oyun Listesi|Daftar Game Steam|Steamゲームリスト|Lista gier Steam|Steam játéklista|Elenco dei giochi di Steam/",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/library.js"
+    },
+    {
+      "MatchRegexString": "/تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录蒸汽平台|登录 Steam|Iniciar sesión en Steam|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Увійти до Steam|Đăng nhập vào Steam/",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/login.js"
+    },
+    {
+      "MatchRegexString": "._14wqdluDeDnnEcg3OSLEmd",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/menu.js"
+    },
+    {
+      "MatchRegexString": ".HoverPopup",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/miniprofile.js"
+    },
+    {
+      "MatchRegexString": "^notificationtoasts_",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/toast.js"
+    },
+    {
+      "MatchRegexString": "^SP Overlay:",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/overlay.js"
+    },
+    {
+      "MatchRegexString": ".ModalDialogBody",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/popup.js"
+    },
+    {
+      "MatchRegexString": "^OverlayBrowser_.*_Find$",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/search.js"
+    },
+    {
+      "MatchRegexString": "^SteamBrowser_Find$",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/search.js"
+    },
+    {
+      "MatchRegexString": "^OverlayTab\\d+_Find$",
+      "TargetCss": "css/full.css",
+      "TargetJs": "js/search.js"
+    },
+    {
+      "MatchRegexString": "https://.*.steampowered.com",
+      "TargetCss": "css/web.css",
+      "TargetJs": "js/web.js"
+    },
+    {
+      "MatchRegexString": "https://steamcommunity.com",
+      "TargetCss": "css/web.css",
+      "TargetJs": "js/web.js"
     }
   ],
-  "UseDefaultPatches": false,
-  "Steam-WebKit": "patch/webkit.css",
   "RootColors": "option/colors.css",
-  "name": "Zehn",
+  "UseDefaultPatches": false,
   "author": "yurisuika",
   "description": "Windows 10 Fluent Design for Steam - Minimal, colorable, light/dark, and more!",
-  "source": "https://github.com/yurisuika/Zehn",
   "github": {
     "owner": "yurisuika",
     "repo_name": "Zehn"
   },
-  "version": "2026.7.24",
+  "header_image": "https://raw.githubusercontent.com/yurisuika/Zehn/refs/heads/assets/header.gif",
+  "name": "Zehn",
+  "source": "https://github.com/yurisuika/Zehn",
+  "splash_image": "https://raw.githubusercontent.com/yurisuika/Zehn/refs/heads/assets/splash.gif",
   "tags": [
     "Minimal",
     "Color",
@@ -611,6 +719,5 @@
     "Fluent",
     "Windows 10"
   ],
-  "header_image": "https://raw.githubusercontent.com/yurisuika/Zehn/refs/heads/assets/header.gif",
-  "splash_image": "https://raw.githubusercontent.com/yurisuika/Zehn/refs/heads/assets/splash.gif"
+  "version": "2026.9.7"
 }

@@ -1,45 +1,49 @@
 {
-  "personalization": {
-    "appearance": {
-      "avatar shape": "round",
-      "scrollbar style": "hidden"
-    },
-    "colors": {
-      "color mode": "auto",
-      "transparency effects": true,
-      "show accent color on window borders": true
-    },
-    "themes": {
-      "background color mix": "0%",
-      "foreground color mix": "0%",
-      "color space": "srgb"
-    }
-  },
-  "scale and layout": {
-    "general": {
-      "show tooltips": true
-    },
-    "navigation": {
-      "titlebar size": "normal",
-      "navbar size": "normal",
-      "download preview width": "250px",
-      "show account avatar": true,
-      "show url bar": true
-    },
-    "library": {
-      "content mode": "panel",
-      "panel roundess": "2px",
-      "content roundness": "0px",
-      "show add shelf": true,
-      "show whats new": true
-    }
-  },
   "features": {
     "waifu": {
       "display waifu": true,
       "waifu position": "bottom right",
       "waifu presence": "fade",
       "waifu scale": "100%"
+    }
+  },
+  "personalization": {
+    "appearance": {
+      "avatar frame": false,
+      "avatar shape": "round",
+      "scrollbar style": "hidden"
+    },
+    "colors": {
+      "color mode": "auto",
+      "show accent color on window borders": true,
+      "transparency effects": true
+    },
+    "themes": {
+      "background color mix": "0%",
+      "color space": "srgb",
+      "foreground color mix": "0%"
+    }
+  },
+  "scale and layout": {
+    "chat": {
+      "embed size": "640px"
+    },
+    "general": {
+      "content roundness": "0px",
+      "panel roundness": "0px",
+      "show tooltips": true
+    },
+    "library": {
+      "content mode": "panel",
+      "show add shelf": true,
+      "show whats new": true
+    },
+    "navigation": {
+      "download preview width": "250px",
+      "navbar size": "normal",
+      "show account avatar": true,
+      "show url bar": true,
+      "titlebar size": "normal"
     }
   }
 }

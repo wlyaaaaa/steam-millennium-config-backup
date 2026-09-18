@@ -1,6 +1,11 @@
-# Runtime material stays outside the public backup snapshot.
-logs/
+# Local receipts, bounded generations and private restore preimages never publish.
 runtime/
+.millennium-backup.lock
+.millennium-transaction/
+.millennium-restore-history/
+.building-*/
+__pycache__/
+logs/
 *.log
 *.tmp
 *.bak

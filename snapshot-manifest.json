@@ -1,0 +1,155 @@
+{
+  "coverage": {
+    "excluded": [
+      "plugin-private settings",
+      "account caches",
+      "game-library caches",
+      "logs",
+      "executables",
+      "plugin/theme program and media assets"
+    ],
+    "inventory_only": [
+      "plugin manifests",
+      "theme definitions",
+      "installation metadata"
+    ],
+    "omitted_core_fields": [],
+    "restorable": [
+      "supported core settings",
+      "quick.css"
+    ],
+    "unknown": [
+      "plugin-private settings are not inspected; recheck in each plugin"
+    ]
+  },
+  "created_utc": "2026-09-18T04:41:09.406060Z",
+  "files": [
+    {
+      "bytes": 5564,
+      "path": "config/config.json",
+      "role": "settings",
+      "sha256": "e0091e364139a9331ac63ec1c82338d230668bbb3b79b8a5510b4ffdc6859a69"
+    },
+    {
+      "bytes": 593,
+      "path": "config/quick.css",
+      "role": "settings",
+      "sha256": "427ef036a237a8e275cd128d419b371db50525fd39c081a378cd690d17d8c4e4"
+    },
+    {
+      "bytes": 87,
+      "path": "plugins/extendium/install-state.json",
+      "role": "inventory_only",
+      "sha256": "4b33999de91eb84e42a6c7e10e69301c0a9e03b23a64e465d3d3619a363fc67b"
+    },
+    {
+      "bytes": 111,
+      "path": "plugins/extendium/metadata.json",
+      "role": "inventory_only",
+      "sha256": "a7a73a570c8252517a3503876f932e042807714dd92dde5da21a0ae6fa25365b"
+    },
+    {
+      "bytes": 422,
+      "path": "plugins/extendium/plugin.json",
+      "role": "inventory_only",
+      "sha256": "a1a7e7651294b2e1da1ca891ad2bd26dc906bff18d38de9ecae3a3adce44e6e2"
+    },
+    {
+      "bytes": 111,
+      "path": "plugins/hltb-for-millennium/metadata.json",
+      "role": "inventory_only",
+      "sha256": "784c7ae0fa5171c4ef6b0295f4f3abe73b3cd8adc986ac896530d56b8ad135a1"
+    },
+    {
+      "bytes": 307,
+      "path": "plugins/hltb-for-millennium/plugin.json",
+      "role": "inventory_only",
+      "sha256": "9f66e78a27c8f0193bd765a80df27383e7e82d2743218c7146bba2f69f5e3ffb"
+    },
+    {
+      "bytes": 111,
+      "path": "plugins/size-on-disk/metadata.json",
+      "role": "inventory_only",
+      "sha256": "b46f5aac298a13e189109b56051ec0e1ddc8c8d2c07f8e4296f1625047d1a86d"
+    },
+    {
+      "bytes": 270,
+      "path": "plugins/size-on-disk/plugin.json",
+      "role": "inventory_only",
+      "sha256": "5d04c322e840bc73853a33068bfe45af5ccbda1d344f6a4848be65abac051180"
+    },
+    {
+      "bytes": 111,
+      "path": "plugins/steam-easygrid/metadata.json",
+      "role": "inventory_only",
+      "sha256": "1a91ca99923c041deb8a93c2881d9ba5f35b948394f157a1c591bbed12a775ce"
+    },
+    {
+      "bytes": 284,
+      "path": "plugins/steam-easygrid/plugin.json",
+      "role": "inventory_only",
+      "sha256": "14242bb15bb08ec24c8769f9d1422dc3c5632521cc5d96e28b0ca55d26c243fa"
+    },
+    {
+      "bytes": 111,
+      "path": "plugins/steam-taskbar-progress/metadata.json",
+      "role": "inventory_only",
+      "sha256": "d18eab69cf5cff64348209080899818b4c7d861891c3701107cedd55563846e6"
+    },
+    {
+      "bytes": 321,
+      "path": "plugins/steam-taskbar-progress/plugin.json",
+      "role": "inventory_only",
+      "sha256": "879eefe397255b03aa03482b4cae6439f2fe43e3e767320df2c27af04e41a8b6"
+    },
+    {
+      "bytes": 113,
+      "path": "themes/Adwaita-for-Steam/metadata.json",
+      "role": "inventory_only",
+      "sha256": "f9b1c5bd1431582c232179921a56f4a589cdf9d95ecc395b0eaa31260070e328"
+    },
+    {
+      "bytes": 14060,
+      "path": "themes/Adwaita-for-Steam/skin.json",
+      "role": "inventory_only",
+      "sha256": "121a9f9da23211cd0922c6adb1b1d92b5ca2648b5940d155f7e726a84b2b0820"
+    },
+    {
+      "bytes": 9380,
+      "path": "themes/Adwaita-for-Steam/theme.json",
+      "role": "inventory_only",
+      "sha256": "20acae49abccfaa5f81c7dc391d6f68781ce8668b4d0fa7ed0a6008e2b590fcb"
+    },
+    {
+      "bytes": 101,
+      "path": "themes/Zehn/metadata.json",
+      "role": "inventory_only",
+      "sha256": "0946821eec70220143d81e3ac724f13a5903f0a212bb7204753267029c62005c"
+    },
+    {
+      "bytes": 1085,
+      "path": "themes/Zehn/options.json",
+      "role": "inventory_only",
+      "sha256": "6a59c1327d3a0786d95270b329e0562ed02baf8813c7b4477f9a5fcf0f8695bc"
+    },
+    {
+      "bytes": 20356,
+      "path": "themes/Zehn/skin.json",
+      "role": "inventory_only",
+      "sha256": "c4f592f15626ff3acb5ec88f404fdec51bf201c76c92ef127ffc8f69b79f8fa4"
+    },
+    {
+      "bytes": 75,
+      "path": "themes/Zehn/waifus.json",
+      "role": "inventory_only",
+      "sha256": "ec5c9acf036c72c52e5d85d2a23005cef07d2ea8893293b67f58251de4d0f18a"
+    }
+  ],
+  "generation": "20260918T044109Z-3baa6bc2e6e9",
+  "schema": "millennium.snapshot.v2",
+  "tool_version": "2.0.0",
+  "versions": {
+    "millennium": "v3.4.1",
+    "steam": "10.96.30.42"
+  }
+}
