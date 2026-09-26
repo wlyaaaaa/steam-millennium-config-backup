@@ -22,3 +22,8 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
 - Machine entry is `E:\PCConfig\registries\steam_millennium_backup.json` on the
   registered host. Its absence means a portable local-only invocation; never invent
   a G/H disk identity. Public Git publication is separate from local capture.
+- A snapshot saves supported core settings and quick CSS for restoration; plugin
+  and theme manifests are inventory only. Keep the user's existing choice that
+  source deletions propagate only after a complete, readable source scan.
+- No automatic Git commit or push runs with the scheduled snapshot. G and H are
+  separate verification results; a local success must not mask a failed replica.
