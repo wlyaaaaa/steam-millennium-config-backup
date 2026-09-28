@@ -11,7 +11,7 @@ $form.Size=[Drawing.Size]::new(840,600)
 $form.StartPosition='CenterScreen'
 $bar=[Windows.Forms.FlowLayoutPanel]::new();$bar.Dock='Top';$bar.Height=44
 $box=[Windows.Forms.TextBox]::new();$box.Multiline=$true;$box.ReadOnly=$true;$box.ScrollBars='Both';$box.Dock='Fill';$box.Font=[Drawing.Font]::new('Microsoft YaHei UI',10)
-$note=[Windows.Forms.Label]::new();$note.Dock='Bottom';$note.Height=48;$note.Text='每周日 19:30 自动备份，需要用户已登录。停止自动备份不会影响 Steam，也不会中断正在保存的快照。恢复操作必须先预检并退出 Steam。'
+$note=[Windows.Forms.Label]::new();$note.Dock='Bottom';$note.Height=48;$note.Text='每周一 10:30（北京时间）自动备份，需要用户已登录。停止自动备份不会影响 Steam，也不会中断正在保存的快照。恢复操作必须先预检并退出 Steam。'
 $form.Controls.Add($box);$form.Controls.Add($note);$form.Controls.Add($bar)
 function Invoke-WindowCommand([string[]]$Arguments){
     $start=[Diagnostics.ProcessStartInfo]::new()

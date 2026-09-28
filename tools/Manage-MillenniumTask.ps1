@@ -36,6 +36,8 @@ if($Mode -eq 'Install'){
     try{
         $action=New-ScheduledTaskAction -Execute $wscript -Argument $arguments -WorkingDirectory $RepoRoot
         $trigger=New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At '19:30'
+        # Keep the established 02:30 UTC instant across local time-zone changes.
+        $trigger.StartBoundary='2026-09-17T19:30:00-07:00'
         $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 15) -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
         $principal=New-ScheduledTaskPrincipal -UserId $currentSid -LogonType Interactive -RunLevel Limited
         $definition=New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description ($ownerTag+' Verified weekly configuration snapshot and registered G replica. Manage/stop in Task Scheduler; disabling only stops backups, not Steam. Status: tools\Show-MillenniumBackupStatus.ps1')
@@ -58,7 +60,7 @@ if(@($task.Actions).Count -ne 1 -or $task.Actions[0].Execute -ne $wscript -or $t
 if($task.Description -notlike "$ownerTag*"){$issues.Add('owner_marker_mismatch')}
 $t=@($task.Triggers)
 if($t.Count -ne 1 -or $t[0].CimClass.CimClassName -ne 'MSFT_TaskWeeklyTrigger' -or $t[0].DaysOfWeek -ne 1 -or $t[0].WeeksInterval -ne 1 -or -not $t[0].Enabled){$issues.Add('trigger_mismatch')}
-elseif(([datetime]$t[0].StartBoundary).TimeOfDay -ne [timespan]::FromHours(19.5)){$issues.Add('schedule_mismatch')}
+elseif(([datetimeoffset]::Parse([string]$t[0].StartBoundary)).ToUniversalTime().TimeOfDay -ne [timespan]::FromHours(2.5)){$issues.Add('schedule_mismatch')}
 if([string]$task.Principal.LogonType -ne 'Interactive' -or [string]$task.Principal.RunLevel -ne 'Limited'){$issues.Add('principal_mismatch')}
 $principalSid=try{([Security.Principal.NTAccount]::new([string]$task.Principal.UserId)).Translate([Security.Principal.SecurityIdentifier]).Value}catch{[string]$task.Principal.UserId}
 if($principalSid -ne $currentSid){$issues.Add('user_mismatch')}
@@ -67,22 +69,6 @@ if($Mode -eq 'Install' -and $issues.Count -gt 0){
     if($oldXml){Register-ScheduledTask -TaskName $TaskName -TaskPath $taskPath -Xml $oldXml -Force|Out-Null}
     else{Unregister-ScheduledTask -TaskName $TaskName -TaskPath $taskPath -Confirm:$false}
     throw ('installation_readback_failed:'+($issues -join ','))
-}
-if($Mode -eq 'Install'){
-    $statusLauncher=Join-Path $RepoRoot 'tools\show-millennium-backup-status.vbs'
-    if(-not(Test-Path -LiteralPath $statusLauncher -PathType Leaf)){throw 'status_launcher_missing'}
-    $link=Join-Path ([Environment]::GetFolderPath('Programs')) 'Steam Millennium 备份状态.lnk'
-    $shell=New-Object -ComObject WScript.Shell
-    $shortcut=$shell.CreateShortcut($link)
-    if((Test-Path -LiteralPath $link) -and $shortcut.Arguments -notlike '*show-millennium-backup-status.vbs*'){throw 'unrelated_shortcut_preserved'}
-    $shortcut.TargetPath=$wscript
-    $shortcut.Arguments='"'+$statusLauncher+'"'
-    $shortcut.WorkingDirectory=$RepoRoot
-    $shortcut.Description='检查、备份和管理 Steam Millennium 配置快照'
-    $shortcut.IconLocation=(Join-Path $env:WINDIR 'System32\shell32.dll')+',46'
-    $shortcut.Save()
-    $readback=$shell.CreateShortcut($link)
-    if($readback.TargetPath -ne $wscript -or $readback.Arguments -ne $shortcut.Arguments){throw 'shortcut_readback_failed'}
 }
 @{schema='millennium.task.v2';status=if($issues.Count){'drift'}else{'verified'};issues=@($issues);task_name=$TaskName;task_path=$taskPath;enabled=[bool]$task.Settings.Enabled;state=[string]$task.State;last_result=$info.LastTaskResult;last_run=$info.LastRunTime.ToString('o');next_run=$info.NextRunTime.ToString('o');write_mode=if($Mode -eq 'Inspect'){'zero_write'}else{'task_configuration'}}|ConvertTo-Json -Depth 6
 if($issues.Count){exit 2}
