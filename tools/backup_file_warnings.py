@@ -2,22 +2,60 @@
 from pathlib import Path
 import os
 import subprocess
+import json
+import time
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+_attempt_started = ContextVar("replica_defender_since_utc", default=None)
+
+
+@contextmanager
+def defender_attempt():
+    token = _attempt_started.set(time.time())
+    try:
+        yield
+    finally:
+        _attempt_started.reset(token)
 
 
 def defender_removed(path):
-    """Return only an exact-path, successful Defender remediation match."""
-    if os.name != "nt":
+    """Only this replica attempt's exact-path successful quarantine/removal counts."""
+    since = _attempt_started.get()
+    if since is None:
         return False
+    return removal_record_matches(path, since, defender_records(path, since))
+
+
+def removal_record_matches(path, since, records):
+    expected = os.path.normcase(str(Path(path).absolute()))
+    now = time.time()
+    for row in records:
+        try:
+            exact = os.path.normcase(str(Path(row["path"]).absolute())) == expected
+            current = since <= float(row["observed_unix"]) <= now
+            removed = row["status"] in (3, 4)
+        except (KeyError, ValueError, TypeError):
+            continue
+        if exact and current and removed and row.get("success") is True:
+            return True
+    return False
+
+
+def defender_records(path, since):
+    if os.name != "nt":
+        return []
     env = os.environ.copy()
     env["BACKUP_WARNING_PATH"] = str(Path(path).absolute())
-    script = "$p=$env:BACKUP_WARNING_PATH; $ok=$false; Get-MpThreatDetection -ErrorAction Stop | Where-Object {$_.ActionSuccess -and $_.LastThreatStatusChangeTime -ge (Get-Date).AddDays(-7)} | ForEach-Object {foreach($r in $_.Resources){if(($r -replace '^file:_','') -ieq $p){$ok=$true}}}; if($ok){'matched'}"
+    env["BACKUP_WARNING_SINCE"] = str(since)
+    script = "$p=$env:BACKUP_WARNING_PATH; $since=[double]::Parse($env:BACKUP_WARNING_SINCE,[cultureinfo]::InvariantCulture); $rows=@(); Get-MpThreatDetection -ErrorAction Stop | Where-Object {$_.ActionSuccess -and $_.ThreatStatusID -in @(3,4)} | ForEach-Object {$d=$_; $observed=([DateTimeOffset]$d.LastThreatStatusChangeTime).ToUnixTimeMilliseconds()/1000.0; if($observed -ge $since){foreach($r in $d.Resources){if(($r -replace '^file:_','') -ieq $p){$rows+=@{path=$p;success=$true;status=[int]$d.ThreatStatusID;observed_unix=$observed}}}}}; ConvertTo-Json -InputObject $rows -Compress"
     try:
         result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
                                 env=env, capture_output=True, text=True, timeout=15,
                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-        return result.returncode == 0 and result.stdout.strip() == "matched"
-    except (OSError, subprocess.TimeoutExpired):
-        return False
+        return json.loads(result.stdout) if result.returncode == 0 else []
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return []
 
 
 def file_warning(exc, relative_path, stage, *, enumerated=False):

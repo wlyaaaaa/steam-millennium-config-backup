@@ -2,13 +2,55 @@ import sys
 from pathlib import Path
 import tempfile
 import unittest
+import time
 from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from test_backup import fixture, put, core
 import millennium_backup as m
+import backup_file_warnings as fw
 
 
 class WarningTests(unittest.TestCase):
+    def test_defender_evidence_requires_current_quarantine_or_removal(self):
+        path = Path(__file__).resolve(); since = time.time() - 1
+        good = {"path": str(path), "observed_unix": time.time(), "success": True, "status": 3}
+        self.assertTrue(fw.removal_record_matches(path, since, [good]))
+        self.assertTrue(fw.removal_record_matches(path, since, [{**good, "status": 4}]))
+        for wrong in ({**good, "observed_unix": since - 7 * 86400}, {**good, "path": str(path.parent / "other")},
+                      {**good, "success": False}, {**good, "status": 1}, {**good, "status": 2}, {**good, "status": 5}):
+            self.assertFalse(fw.removal_record_matches(path, since, [wrong]))
+
+    def test_old_event_or_allowed_action_never_explains_new_post_copy_missing(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            for label, status, age in (("old", 3, 7 * 86400), ("allowed", 2, 0), ("cleanup", 5, 0)):
+                case = root / label; case.mkdir()
+                source = case / "source"; dest = case / "dest"; target = case / "replica"
+                fixture(source); store = m.SnapshotStore(source, dest); store.snapshot(); m.replicate(dest, target)
+                put(source, "config/quick.css", b"new ordinary missing"); store.snapshot()
+                original = m.atomic_write
+                def removed(path, data):
+                    original(path, data)
+                    if path == target / "config/quick.css" and data == b"new ordinary missing":
+                        path.rename(case / "ordinary-missing-fixture")
+                def records(path, since):
+                    return [{"path": str(path), "observed_unix": time.time() - age, "success": True, "status": status}]
+                with mock.patch.object(m, "atomic_write", side_effect=removed), \
+                     mock.patch.object(fw, "defender_records", side_effect=records):
+                    with self.assertRaises(m.BackupError): m.replicate(dest, target)
+
+    def test_only_prior_unresolved_warning_protects_preexisting_missing(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name); source = root / "source"; dest = root / "dest"; target = root / "replica"
+            fixture(source); m.SnapshotStore(source, dest).snapshot(); m.replicate(dest, target)
+            target.joinpath("config/quick.css").rename(root / "prior-quarantine")
+            m.atomic_json(target / "replica-receipt.json", {"status": "complete", "retry_required": True,
+                "verification_scope": "retained_recoverable_state", "file_warnings": [
+                    {"relative_path": "config/quick.css", "reason": "antivirus_removed", "error_code": 226, "stage": "replica_copy"}]})
+            with mock.patch.object(fw, "defender_records", return_value=[]): result = m.replicate(dest, target)
+            self.assertFalse(result["current_data_copied"])
+            self.assertEqual(result["file_warnings"][0]["reason"], "antivirus_removed")
+
     def test_post_copy_removal_rolls_back_then_updates_unblocked_files(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name); source = root / "source"; dest = root / "dest"; target = root / "replica"

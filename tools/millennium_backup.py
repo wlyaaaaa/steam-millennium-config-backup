@@ -21,7 +21,7 @@ import sys
 import uuid
 from typing import Any, Callable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from backup_file_warnings import file_warning, defender_removed
+from backup_file_warnings import file_warning, defender_removed, defender_attempt
 
 VERSION = "2.0.1"
 SCHEMA = "millennium.snapshot.v2"
@@ -420,7 +420,7 @@ def make_manifest(files: dict[str, bytes], *, generation: str | None = None,
                       for p, b in sorted(files.items())]}
 
 
-def verify_bundle(root: Path, *, allow_pending: bool = False) -> tuple[dict[str, bytes], dict]:
+def verify_bundle(root: Path, *, allow_pending: bool = False, protected_missing=()) -> tuple[dict[str, bytes], dict]:
     root = no_links(root)
     if not allow_pending and (root / JOURNAL).exists():
         raise BackupError("pending_transaction")
@@ -441,7 +441,7 @@ def verify_bundle(root: Path, *, allow_pending: bool = False) -> tuple[dict[str,
             raise BackupError("duplicate_manifest_path")
         seen.add(p.casefold())
         data = files.get(p)
-        if data is None and defender_removed(root / p):
+        if data is None and (p in protected_missing or defender_removed(root / p)):
             exc = FileNotFoundError(2, "antivirus_removed", str(root / p))
             exc.winerror = 226
             exc.warning_path = root / p
@@ -818,6 +818,11 @@ class SnapshotStore:
 
 
 def replicate(bundle_root: Path, target: Path, runtime: Path | None = None) -> dict:
+    with defender_attempt():
+        return _replicate_with_warnings(bundle_root, target, runtime)
+
+
+def _replicate_with_warnings(bundle_root: Path, target: Path, runtime: Path | None = None) -> dict:
     try:
         return _replicate(bundle_root, target, runtime)
     except OSError as exc:
@@ -850,7 +855,7 @@ def _replicate(bundle_root: Path, target: Path, runtime: Path | None = None) -> 
         recover_transaction(target)
         existing = managed_files(target)
         if (target / MANIFEST).exists():
-            verify_bundle(target)
+            verify_bundle(target, protected_missing=_unresolved_replica_paths(target))
         elif existing:
             raise BackupError("unowned_replica_destination")
         source_runtime = no_links(runtime or bundle_root / "runtime")
@@ -938,6 +943,19 @@ def _replica_warning(exc, target, stage):
     if index is None:
         return None
     return file_warning(exc, Path(*parts[index:]).as_posix(), stage)
+
+
+def _unresolved_replica_paths(target):
+    """Prior unresolved warnings protect only the initial pre-copy observation."""
+    path = target / "replica-receipt.json"
+    if not path.is_file():
+        return set()
+    receipt = parse_json(read_bytes(path), "replica-receipt")
+    if (receipt.get("status") != "complete" or receipt.get("retry_required") is not True
+            or receipt.get("verification_scope") != "retained_recoverable_state"):
+        return set()
+    return {safe_rel(w["relative_path"]) for w in receipt.get("file_warnings", [])
+            if w.get("reason") == "antivirus_removed"}
 
 
 def assert_steam_stopped(target: Path | None = None) -> None:
