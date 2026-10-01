@@ -97,6 +97,7 @@ if ($Mode -eq 'Snapshot' -and $exitCode -eq 0 -and $config -and $config.g_replic
         $replica = Invoke-Engine @('replicate','--destination',$destination,'--runtime',$RuntimeRoot,'--target',[string]$config.g_replica_root)
         if ($replica.Code -ne 0) { throw ('replica_failed:' + $replica.Value.reason) }
         $payload | Add-Member -NotePropertyName replica -NotePropertyValue $replica.Value -Force
+        $payload | Add-Member -NotePropertyName file_warnings -NotePropertyValue @(@($payload.file_warnings) + @($replica.Value.file_warnings) | Where-Object { $null -ne $_ }) -Force
         # The engine owns durable, atomic JSON writes; no PowerShell serialization drift.
         & $PythonExecutable -I -B -c 'import os,pathlib,sys; p=pathlib.Path(sys.argv[2]); t=p.with_name(p.name+".tmp"); t.write_bytes(pathlib.Path(sys.argv[1]).read_bytes()); os.replace(t,p)' (Join-Path $config.g_replica_root 'replica-receipt.json') (Join-Path $RuntimeRoot 'replica-last.json')
         if ($LASTEXITCODE -ne 0) { throw 'replica_receipt_readback_failed' }
@@ -150,7 +151,12 @@ if ($Mode -eq 'Status') {
         try {
             $r = Invoke-Engine @('verify','--destination',[string]$config.g_replica_root)
             $payload | Add-Member -NotePropertyName replica_readback -NotePropertyValue $r.Value -Force
-            if ($r.Code -ne 0 -or $r.Value.generation -ne $payload.generation) { $payload.status='needs_attention';$exitCode=2 }
+            $warningProjection = $null -ne $lastMachine -and $lastMachine.replica.status -eq 'complete' -and
+                @($lastMachine.replica.file_warnings).Count -gt 0 -and
+                $lastMachine.replica.source_generation -eq $payload.generation -and
+                $lastMachine.replica.generation -eq $r.Value.generation
+            if ($r.Code -ne 0 -or ($r.Value.generation -ne $payload.generation -and -not $warningProjection)) { $payload.status='needs_attention';$exitCode=2 }
+            elseif($warningProjection){ $payload | Add-Member -NotePropertyName file_warnings -NotePropertyValue $lastMachine.file_warnings -Force }
         }
         catch { $payload | Add-Member -NotePropertyName replica_readback -NotePropertyValue @{status='unavailable'} -Force;$payload.status='needs_attention';$exitCode=2 }
     }

@@ -20,6 +20,8 @@ import subprocess
 import sys
 import uuid
 from typing import Any, Callable
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from backup_file_warnings import file_warning, defender_removed
 
 VERSION = "2.0.1"
 SCHEMA = "millennium.snapshot.v2"
@@ -142,6 +144,14 @@ def path_for(root: Path, relative: str, *, manifest: bool = False) -> Path:
 
 def read_bytes(path: Path) -> bytes:
     path = no_links(path)
+    try:
+        return _read_bytes_checked(path)
+    except OSError as exc:
+        exc.warning_path = path
+        raise
+
+
+def _read_bytes_checked(path: Path) -> bytes:
     with path.open("rb") as f:
         size = os.fstat(f.fileno()).st_size
         if size > MAX_FILE:
@@ -162,6 +172,9 @@ def atomic_write(path: Path, data: bytes) -> None:
             f.flush()
             os.fsync(f.fileno())
         os.replace(temp, path)
+    except OSError as exc:
+        exc.warning_path = path
+        raise
     finally:
         if temp.exists():
             temp.unlink()
@@ -303,7 +316,9 @@ def source_membership(source: Path) -> list[str]:
     return sorted(members)
 
 
-def read_source(source: Path) -> tuple[dict[str, bytes], dict]:
+def read_source(source: Path, *, fallback=None, file_warnings=None) -> tuple[dict[str, bytes], dict]:
+    fallback = fallback or {}
+    file_warnings = file_warnings if file_warnings is not None else []
     source = no_links(source)
     for directory in MANAGED:
         if not no_links(source / directory).is_dir():
@@ -330,7 +345,21 @@ def read_source(source: Path) -> tuple[dict[str, bytes], dict]:
                     paths.append(relative)
     if len(paths) > MAX_FILES:
         raise BackupError("file_count_limit")
-    raw = {rel: read_bytes(path_for(source, rel)) for rel in paths}
+    def read_enumerated(rel):
+        try:
+            return read_bytes(path_for(source, rel))
+        except OSError as exc:
+            exc.warning_path = source / rel
+            exc.enumerated_optional = rel != "config/config.json" and not rel.endswith(("/plugin.json", "/skin.json"))
+            warning = file_warning(exc, rel, "source_read", enumerated=exc.enumerated_optional)
+            if warning is None or not source.is_dir() or any(not (source / group).is_dir() for group in MANAGED):
+                raise
+            if rel not in fallback and not exc.enumerated_optional:
+                raise
+            if warning not in file_warnings:
+                file_warnings.append(warning)
+            return fallback.get(rel)
+    raw = {rel: data for rel in paths if (data := read_enumerated(rel)) is not None}
     if sum(map(len, raw.values())) > MAX_TOTAL:
         raise BackupError("snapshot_size_limit")
     core, omitted = project_core(parse_json(raw["config/config.json"], "core"))
@@ -344,9 +373,19 @@ def read_source(source: Path) -> tuple[dict[str, bytes], dict]:
     # Read again after validation: source mutation or incomplete enumeration is not deletion.
     raw_check: dict[str, bytes] = {}
     for rel in paths:
-        raw_check[rel] = read_bytes(path_for(source, rel))
-    if raw != raw_check or source_membership(source) != initial_membership:
+        data = read_enumerated(rel)
+        if data is not None:
+            raw_check[rel] = data
+    skipped = {w["relative_path"] for w in file_warnings}
+    for rel in skipped:
+        if rel in raw_check:
+            raw[rel] = raw_check[rel]
+        else:
+            raw.pop(rel, None)
+    if raw != raw_check or [p for p in source_membership(source) if p not in skipped] != [p for p in initial_membership if p not in skipped]:
         raise BackupError("source_changed_during_read")
+    core, omitted = project_core(parse_json(raw["config/config.json"], "core"))
+    projected = {rel: validate_payload(rel, data) for rel, data in raw.items()}
     return projected, {"layout": names, "omitted_core_fields": omitted,
                        "raw_fingerprint": digest(encoded({p: digest(b) for p, b in raw.items()}))}
 
@@ -402,6 +441,11 @@ def verify_bundle(root: Path, *, allow_pending: bool = False) -> tuple[dict[str,
             raise BackupError("duplicate_manifest_path")
         seen.add(p.casefold())
         data = files.get(p)
+        if data is None and defender_removed(root / p):
+            exc = FileNotFoundError(2, "antivirus_removed", str(root / p))
+            exc.winerror = 226
+            exc.warning_path = root / p
+            raise exc
         if data is None or entry.get("bytes") != len(data) or entry.get("sha256") != digest(data):
             raise BackupError(f"snapshot_hash_mismatch:{p}")
         projected = validate_payload(p, data)
@@ -508,7 +552,10 @@ def recover_transaction(root: Path, *, rollback_committed: bool = False) -> str:
     # First check ALL paths; never clobber edits made after the interrupted operation.
     for entry in journal["entries"]:
         p = safe_rel(entry["path"], manifest=True)
-        if current_hash(path_for(root, p, manifest=True)) not in (entry["before"], entry["after"]):
+        live = path_for(root, p, manifest=True)
+        current = current_hash(live)
+        removed_by_antivirus = current is None and defender_removed(live)
+        if current not in (entry["before"], entry["after"]) and not removed_by_antivirus:
             raise BackupError(f"transaction_recovery_conflict:{p}")
         if entry["before"] is not None and current_hash(path_for(journal_root / "before", p, manifest=True)) != entry["before"]:
             raise BackupError("transaction_preimage_corrupt")
@@ -576,7 +623,14 @@ def transact(root: Path, writes: dict[str, bytes | None], *, before: dict[str, s
             if fault:
                 fault(index)
         for entry in entries:
-            if current_hash(path_for(root, entry["path"], manifest=True)) != entry["after"]:
+            target = path_for(root, entry["path"], manifest=True)
+            observed = current_hash(target)
+            if observed is None and entry["after"] is not None and defender_removed(target):
+                exc = FileNotFoundError(2, "antivirus_removed", str(target))
+                exc.winerror = 226
+                exc.warning_path = target
+                raise exc
+            if observed != entry["after"]:
                 raise BackupError("publication_readback_failed")
         journal["status"] = "committed"
         atomic_json(journal_root / "journal.json", journal)
@@ -618,11 +672,21 @@ class SnapshotStore:
 
     def snapshot(self, *, adopt_existing: bool = False, keep: int = 4, versions: dict | None = None,
                  fault=None) -> dict:
+        return self._snapshot(adopt_existing=adopt_existing, keep=keep, versions=versions, fault=fault)
+
+    def _snapshot(self, *, adopt_existing=False, keep=4, versions=None, fault=None):
         if not 2 <= keep <= 32:
             raise BackupError("retention_must_be_between_2_and_32")
         # Check source BEFORE creating destination/lock/runtime: missing is not empty.
+        fallback = {}
+        if (self.destination / MANIFEST).is_file() and not (self.destination / JOURNAL).exists():
+            try:
+                fallback = verify_bundle(self.destination)[0]
+            except BackupError:
+                pass  # The locked destination validation below still rejects corruption.
+        file_warnings = []
         try:
-            files, observation = read_source(self.source)
+            files, observation = read_source(self.source, fallback=fallback, file_warnings=file_warnings)
         except Exception as exc:
             binding_path = self.runtime / "binding.json"
             if binding_path.exists():
@@ -662,7 +726,7 @@ class SnapshotStore:
                     old_bundle = self.runtime / "snapshots" / previous_manifest["generation"]
                     if not old_bundle.exists():
                         write_bundle(old_bundle, previous, previous_manifest)
-                files_check, check = read_source(self.source)
+                files_check, check = read_source(self.source, fallback=fallback, file_warnings=file_warnings)
                 if files_check != files or check != observation:
                     raise BackupError("source_changed_during_collection")
                 # No clock throttle. Even no-change verifies actual files and source.
@@ -691,8 +755,13 @@ class SnapshotStore:
                     "destinationRoot": str(self.destination), "copiedFiles": len(files),
                     "generation": manifest["generation"], "manifest_sha256": pointer["manifest_sha256"]})
                 self.prune(keep, manifest["generation"])
-                return self.receipt(outcome, generation=manifest["generation"], verified_files=len(files),
-                                    recovered=recovered, omitted_core_fields=observation["omitted_core_fields"])
+                skipped = {w["relative_path"] for w in file_warnings}
+                return self.receipt("complete" if file_warnings else outcome,
+                                    generation=manifest["generation"], verified_files=len(files),
+                                    recovered=recovered, omitted_core_fields=observation["omitted_core_fields"],
+                                    file_warnings=file_warnings, current_data_copied=not bool(file_warnings),
+                                    updated_files=[p for p in files if p not in skipped],
+                                    verification_scope="current_files_with_previous_same_path_fallback" if file_warnings else "complete_current_generation")
             except Exception as exc:
                 self.receipt("failed", reason=str(exc) if isinstance(exc, BackupError) else type(exc).__name__)
                 raise
@@ -749,11 +818,34 @@ class SnapshotStore:
 
 
 def replicate(bundle_root: Path, target: Path, runtime: Path | None = None) -> dict:
+    try:
+        return _replicate(bundle_root, target, runtime)
+    except OSError as exc:
+        path = getattr(exc, "warning_path", None)
+        if path is None:
+            raise
+        root = target if Path(path).is_relative_to(target) else bundle_root
+        if not Path(path).is_relative_to(root):
+            raise
+        warning = file_warning(exc, Path(path).relative_to(root), "replica_copy")
+        if warning is None:
+            raise
+        # Transactions retain durable preimages; never label blocked bytes verified.
+        result = {"schema": "millennium.replica.v2", "status": "complete", "file_warnings": [warning],
+                  "current_data_copied": False, "verification_scope": "retained_recoverable_state",
+                  "destination": str(target), "retry_required": True}
+        atomic_json(target / "replica-receipt.json", result)
+        return result
+
+
+def _replicate(bundle_root: Path, target: Path, runtime: Path | None = None) -> dict:
     """Export the verified public bundle; never copy arbitrary runtime/private files."""
     bundle_root, target = no_links(bundle_root), no_links(target)
     if overlap(bundle_root, target) or target == target.parent:
         raise BackupError("unsafe_replica_target")
     files, manifest = verify_bundle(bundle_root)
+    source_generation = manifest["generation"]
+    file_warnings = []
     with writer_lock(target):
         recover_transaction(target)
         existing = managed_files(target)
@@ -789,17 +881,63 @@ def replicate(bundle_root: Path, target: Path, runtime: Path | None = None) -> d
                 if saved_files != history_files or saved_manifest != history_manifest:
                     raise BackupError("replica_history_conflict")
             else:
-                write_bundle(saved, history_files, history_manifest)
-        publish(target, files, manifest, existing)
+                try:
+                    write_bundle(saved, history_files, history_manifest)
+                except OSError as exc:
+                    warning = _replica_warning(exc, target, "history_copy")
+                    if warning is None:
+                        raise
+                    file_warnings.append(warning)
+                    # An interrupted historical bundle is not advertised as verified.
+        for attempt in range(len(files) + 1):
+            try:
+                publish(target, files, manifest, existing)
+                break
+            except OSError as exc:
+                warning = _replica_warning(exc, target, "current_copy")
+                if warning is None:
+                    raise
+                rel = warning["relative_path"]
+                if rel not in files or any(w["relative_path"] == rel and w["stage"] == "current_copy" for w in file_warnings):
+                    raise  # A blocked rollback/preimage is not safe to skip.
+                if rel not in existing and rel == "config/config.json":
+                    raise  # No valid core projection can be fabricated on first capture.
+                file_warnings.append(warning)
+                files = dict(files)
+                if rel in existing:
+                    files[rel] = existing[rel]
+                else:
+                    files.pop(rel, None)
+                manifest = make_manifest(files, versions=manifest.get("versions"), coverage=manifest.get("coverage"))
+        else:
+            raise BackupError("replica_retry_limit")
+        verified_files, verified_manifest = verify_bundle(target)
+        if verified_files != files or verified_manifest != manifest:
+            raise BackupError("replica_projection_readback_failed")
         for item in history.iterdir():
             if GENERATION.fullmatch(item.name) and item.name not in wanted:
                 verify_bundle(item)
                 remove_owned_tree(item)
         receipt = {"schema": "millennium.replica.v2", "status": "complete", "completed_utc": utc(),
                    "generation": manifest["generation"], "verified_files": len(files), "retained_generations": len(wanted),
-                   "manifest_sha256": digest(read_bytes(target / MANIFEST)), "destination": str(target)}
+                   "manifest_sha256": digest(read_bytes(target / MANIFEST)), "destination": str(target),
+                   "source_generation": source_generation, "file_warnings": file_warnings,
+                   "current_data_copied": not bool(file_warnings),
+                   "verification_scope": "current_files_with_previous_same_path_fallback" if file_warnings else "complete_current_generation"}
         atomic_json(target / "replica-receipt.json", receipt)
         return receipt
+
+
+def _replica_warning(exc, target, stage):
+    path = getattr(exc, "warning_path", None)
+    if path is None or not Path(path).is_relative_to(target):
+        return None
+    parts = Path(path).relative_to(target).parts
+    # Staging/transaction prefixes are implementation details, not payload paths.
+    index = next((i for i, part in enumerate(parts) if part in MANAGED), None)
+    if index is None:
+        return None
+    return file_warning(exc, Path(*parts[index:]).as_posix(), stage)
 
 
 def assert_steam_stopped(target: Path | None = None) -> None:
