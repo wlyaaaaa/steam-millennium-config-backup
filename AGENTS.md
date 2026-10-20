@@ -6,8 +6,10 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
 - Read-only entry: `tools/Invoke-MillenniumBackup.ps1 -Mode Status` or `-Mode Verify`.
   `RestorePlan` is also zero-write. `Snapshot`, `Recover`, `Restore`, `Rollback`,
   `Replicate`, task Install/Enable/Disable are writes, never checks.
-- PowerShell 7.2+ launches the standard-library Python 3.11+ engine. Preserve old
-  wrapper names, but do not restore the old time throttle or dirty-workspace bypass.
+- PowerShell 7.2+ launches the standard-library Python 3.11+ engine. Do not restore
+  the old time throttle or dirty-workspace bypass.
+- Preserve the name and path `tools/snapshot-millennium-config-hidden.vbs`:
+  SteamMillenniumConfigSnapshot and PCConfig's tasks.json are bound to this launcher.
 - `config`, `plugins`, `themes` and `snapshot-manifest.json` are a verified public
   projection. Runtime/transaction/restore preimages are local and ignored.
 - Unknown core settings are reported, not published. Plugin-private settings and

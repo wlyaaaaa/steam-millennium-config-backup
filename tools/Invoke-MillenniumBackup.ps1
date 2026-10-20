@@ -122,12 +122,16 @@ if ($Mode -eq 'Status') {
         if(Test-Path -LiteralPath $coldPath -PathType Leaf){
             try{
                 $coldResult=Invoke-Engine @('verify','--destination',[string]$config.h_replica_root)
-                $cold=@{status=if($coldResult.Code -eq 0 -and $coldResult.Value.generation -eq $payload.generation){'verified'}else{'stale_or_invalid'};readback=$coldResult.Value}
+                $cold=@{
+                    status=if($coldResult.Code -ne 0){'invalid'}elseif($coldResult.Value.generation -eq $payload.generation){'verified'}else{'verified_previous_generation'}
+                    local_generation=$payload.generation
+                    replica_generation=$coldResult.Value.generation
+                    readback=$coldResult.Value
+                }
             }catch{$cold=@{status='unverified_or_unavailable';reason=$_.Exception.Message}}
         }
-        $coldAttempt = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PCConfig\core-recovery\cold-steam_millennium-last.json'
-        if(Test-Path -LiteralPath $coldAttempt -PathType Leaf){
-            try{$cold['last_attempt']=Get-Content -LiteralPath $coldAttempt -Raw|ConvertFrom-Json -Depth 20}catch{$cold['last_attempt']=@{status='unreadable'}}
+        if(Test-Path -LiteralPath $coldPath -PathType Leaf){
+            try{$cold['last_attempt']=Get-Content -LiteralPath $coldPath -Raw|ConvertFrom-Json -Depth 20}catch{$cold['last_attempt']=@{status='unreadable'}}
         }
         $payload | Add-Member -NotePropertyName cold_replica -NotePropertyValue $cold -Force
     }
