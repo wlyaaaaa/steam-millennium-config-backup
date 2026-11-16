@@ -1,0 +1,82 @@
+{
+  "artifacts": [
+    {
+      "at": "2026-11-16T02:30:02.440923Z",
+      "kind": "inventory",
+      "open": {
+        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/wardrobe.md",
+        "source": "millennium.wardrobe"
+      },
+      "public": "same",
+      "status": "completed",
+      "title": "现在这一份衣橱清单"
+    },
+    {
+      "at": "2026-11-16T03:29:14.569774Z",
+      "kind": "inventory",
+      "open": {
+        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/wardrobe-history.md",
+        "source": "millennium.wardrobe-history"
+      },
+      "public": "same",
+      "status": "completed",
+      "title": "换装记录"
+    }
+  ],
+  "at": "2026-11-16T03:32:49.803034Z",
+  "metrics": {
+    "code_files": 12,
+    "config_files": 4,
+    "docs_files": 2,
+    "history": [
+      {
+        "added": [],
+        "at": "2026-11-16T02:30:02.440923Z",
+        "files_changed": 0,
+        "removed": [],
+        "state_text": "已保存",
+        "text": "多了：无；少了：无；皮肤：Adwaita-for-Steam → Adwaita-for-Steam；设置或清单变化 0 个文件",
+        "theme_after": "Adwaita-for-Steam",
+        "theme_before": "Adwaita-for-Steam"
+      },
+      {
+        "added": [],
+        "at": "2026-10-26T02:35:54.198426Z",
+        "files_changed": 0,
+        "removed": [],
+        "state_text": "已保存",
+        "text": "多了：无；少了：无；皮肤：Adwaita-for-Steam → Adwaita-for-Steam；设置或清单变化 0 个文件",
+        "theme_after": "Adwaita-for-Steam",
+        "theme_before": "Adwaita-for-Steam"
+      },
+      {
+        "added": [],
+        "at": "2026-10-19T02:30:01.490669Z",
+        "files_changed": 6,
+        "removed": [],
+        "state_text": "已保存",
+        "text": "多了：无；少了：无；皮肤：Adwaita-for-Steam → Adwaita-for-Steam；设置或清单变化 6 个文件",
+        "theme_after": "Adwaita-for-Steam",
+        "theme_before": "Adwaita-for-Steam"
+      },
+      {
+        "added": null,
+        "at": "2026-09-28T02:30:01.363501Z",
+        "removed": null,
+        "state_text": "已保存",
+        "text": "可用历史起点；没有更早一份可比",
+        "theme_after": "Adwaita-for-Steam",
+        "theme_before": null
+      }
+    ],
+    "tracked_files": 40
+  },
+  "scope": "按需整理的换装记录及仓库规模；不代表真实重装验收",
+  "size": {
+    "at": "2026-11-16T03:32:49.803034Z",
+    "code_chars": 116735,
+    "code_lines": 2647,
+    "docs_chars": 2807
+  },
+  "v": 1
+}

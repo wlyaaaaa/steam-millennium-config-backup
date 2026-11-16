@@ -66,6 +66,43 @@ class BackupTests(unittest.TestCase):
         self.assertFalse((self.dest / 'id_cache.json').exists())
         self.assertEqual(manifest['schema'], m.SCHEMA)
 
+    def test_live_comparison_history_and_unchanged_static_time(self):
+        self.snap()
+        live, static = self.dest / 'runtime/live.json', self.dest / 'docs/live.snapshot.json'
+        m.export_live(self.store, live, static)
+        first, stamp = static.read_bytes(), static.stat().st_mtime_ns
+        with mock.patch.object(m, 'utc', return_value='2099-01-01T00:00:00Z'):
+            m.export_live(self.store, live, static)
+        self.assertEqual((static.read_bytes(), static.stat().st_mtime_ns), (first, stamp))
+        with mock.patch.object(m.subprocess, 'run', return_value=mock.Mock(stdout='only-one\n')), mock.patch.object(m, 'utc', return_value='2099-01-01T00:00:00Z'):
+            m.export_live(self.store, live, static)
+        self.assertEqual(json.loads(static.read_bytes())['artifacts'][1]['at'],
+                         json.loads(first)['artifacts'][1]['at'])
+        put(self.source, 'config/config.json', core('red'))
+        value = m.export_live(self.store, live)
+        self.assertEqual(value['metrics']['changes']['modified'], 1)
+        self.assertEqual(value['metrics']['changes']['total'], 1)
+        put(self.source, 'plugins/extra/plugin.json', {'name': 'extra', 'version': '1.0'})
+        self.snap()
+        m.export_live(self.store, live, static)
+        history = json.loads(static.read_bytes())['metrics']['history']
+        self.assertEqual(history[0]['added'], ['extra'])
+        self.assertEqual(history[0]['removed'], [])
+        self.assertEqual(history[0]['theme_after'], 'Test')
+        original = m.read_bytes
+        def unreadable(path):
+            if path == self.source / 'config/quick.css':
+                raise FileNotFoundError(2, 'synthetic disappearing optional file')
+            return original(path)
+        with mock.patch.object(m, 'read_bytes', side_effect=unreadable):
+            value = m.export_live(self.store, live)
+        self.assertIsNone(value['metrics']['changes'])
+        (self.source / 'config/config.json').unlink()
+        value = m.export_live(self.store, live)
+        self.assertIsNone(value['metrics']['changes'])
+        self.assertIsNone(value['metrics']['unknown'])
+        self.assertIn('取不到', value['reason'])
+
     def test_successive_updates_without_git_commit(self):
         self.snap()
         put(self.source, 'config/config.json', core('red'))

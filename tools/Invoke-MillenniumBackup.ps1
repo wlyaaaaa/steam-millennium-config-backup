@@ -1,7 +1,7 @@
 ﻿#requires -Version 7.2
 [CmdletBinding()]
 param(
-    [ValidateSet('Snapshot','Status','Verify','Replicate','RestorePlan','Restore','Rollback','Recover')]
+    [ValidateSet('Snapshot','Status','Live','Verify','Replicate','RestorePlan','Restore','Rollback','Recover')]
     [string]$Mode = 'Status',
     [string]$SourceRoot = '',
     [string]$DestinationRoot = (Split-Path -Parent $PSScriptRoot),
@@ -25,7 +25,7 @@ if (-not $RuntimeRoot) { $RuntimeRoot = Join-Path $destination 'runtime' }
 $config = $null
 # Only the actual registered checkout on this host inherits the machine mapping.
 $defaultMachine = 'E:\PCConfig\registries\steam_millennium_backup.json'
-if (-not $MachineConfig -and $Mode -in @('Snapshot','Status') -and (Test-Path -LiteralPath $defaultMachine -PathType Leaf)) {
+if (-not $MachineConfig -and $Mode -in @('Snapshot','Status','Live') -and (Test-Path -LiteralPath $defaultMachine -PathType Leaf)) {
     $candidate = Get-Content -LiteralPath $defaultMachine -Raw | ConvertFrom-Json
     if ([string]::Equals($destination, [IO.Path]::GetFullPath($candidate.project_root), [StringComparison]::OrdinalIgnoreCase) -and $candidate.machine_name -eq $env:COMPUTERNAME) { $MachineConfig = $defaultMachine }
 }
@@ -48,7 +48,7 @@ if (-not $PythonExecutable) {
 if (-not (Test-Path -LiteralPath $PythonExecutable -PathType Leaf)) { throw 'python_executable_missing' }
 $probe = & $PythonExecutable -I -B -c 'import sys; print("supported" if (3,11) <= sys.version_info[:2] < (4,0) else "unsupported")'
 if ($LASTEXITCODE -ne 0 -or [string]$probe -ne 'supported') { throw 'python_3_11_or_newer_required' }
-if (-not $SourceRoot -and $Mode -in @('Snapshot','Status')) {
+if (-not $SourceRoot -and $Mode -in @('Snapshot','Status','Live')) {
     $candidates = [Collections.Generic.List[string]]::new()
     $steam = Get-ItemProperty -LiteralPath 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction SilentlyContinue
     if ($steam -and $steam.SteamPath) { $candidates.Add((Join-Path $steam.SteamPath 'millennium')) }
@@ -65,10 +65,10 @@ function Invoke-Engine {
     catch { throw 'invalid_engine_response' }
     return [pscustomobject]@{ Code = $code; Value = $object }
 }
-$actions = @{Snapshot='snapshot';Status='status';Verify='verify';Replicate='replicate';RestorePlan='restore-plan';Restore='restore';Rollback='rollback';Recover='recover'}
+$actions = @{Snapshot='snapshot';Status='status';Live='live';Verify='verify';Replicate='replicate';RestorePlan='restore-plan';Restore='restore';Rollback='rollback';Recover='recover'}
 $arguments = @($actions[$Mode], '--destination', $destination)
 if ($SourceRoot) { $arguments += @('--source', $SourceRoot) }
-if ($Mode -in @('Snapshot','Status') -or ($Mode -eq 'Replicate' -and $PSBoundParameters.ContainsKey('RuntimeRoot'))) { $arguments += @('--runtime',$RuntimeRoot) }
+if ($Mode -in @('Snapshot','Status','Live') -or ($Mode -eq 'Replicate' -and $PSBoundParameters.ContainsKey('RuntimeRoot'))) { $arguments += @('--runtime',$RuntimeRoot) }
 if ($TargetRoot) { $arguments += @('--target',$TargetRoot) }
 if ($Mode -eq 'Snapshot') {
     $arguments += @('--keep',[string]$Keep)

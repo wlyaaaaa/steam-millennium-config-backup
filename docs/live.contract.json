@@ -1,0 +1,36 @@
+{
+  "v": 1,
+  "id": "steam-millennium-config-backup",
+  "name": "Steam 衣橱",
+  "about": "存好 Steam 的皮肤、插件清单和外观设置，重装后照着恢复。",
+  "headline": "changes",
+  "tasks": ["task-9d715101b827fb7aa08aeb5a"],
+  "skills": [],
+  "bindings_complete": true,
+  "sections": [
+    {"id": "wardrobe", "label": "衣橱里有什么", "about": "我用了几个插件、开着几个，有几套皮肤，现在穿哪套？", "metrics": ["plugins", "themes", "restore"], "note": "插件程序、皮肤素材、插件自己的设置不在里面，要重新装。"},
+    {"id": "comparison", "label": "跟现在的 Steam 对得上吗", "about": "最近改的外观记住没有，这一份是多久前的？", "metrics": ["changes", "unknown", "saved_at"], "note": "只比较支持的核心设置、快捷样式和组件清单；比较失败显示取不到。"},
+    {"id": "history", "label": "换装记录", "about": "每一份比上一份多了、少了哪个插件，换了哪套皮肤？", "metrics": ["history"], "note": "按需整理；最早保留的一份只作起点，没有更早记录可比。"},
+    {"id": "more-data", "label": "更多数据", "about": "好奇：存了哪些文件，清单怎样分布，仓库有多少文件和代码文字？", "metrics": ["files", "plugin_files", "theme_files", "docs_files", "code_files", "config_files", "tracked_files", "code_chars"], "note": "文件明细点开才看；清单文件数不是插件或皮肤个数。自有规模排除第三方和生成物，含自定义快捷样式。"}
+  ],
+  "metrics": [
+    {"id": "plugins", "label": "记着的插件", "source": "millennium.live", "pointer": "/metrics/plugins", "records": "/plugin_list", "time": "/at", "mode": "live", "unit": "", "public": "same", "stale_after": 300, "shape": "list"},
+    {"id": "themes", "label": "记着的皮肤", "source": "millennium.live", "pointer": "/metrics/themes", "records": "/theme_list", "time": "/at", "mode": "live", "unit": "", "public": "same", "stale_after": 300, "shape": "list"},
+    {"id": "restore", "label": "重装能带回什么", "source": "millennium.live", "pointer": "/metrics/restore", "time": "/at", "mode": "live", "unit": "", "public": "same", "stale_after": 300, "note": "它到底存了多少、重装时能带回什么？"},
+    {"id": "changes", "label": "没存进去的改动", "source": "millennium.live", "pointer": "/metrics/changes", "time": "/at", "mode": "live", "unit": "", "public": "same", "stale_after": 300},
+    {"id": "unknown", "label": "存不了的新设置项", "source": "millennium.live", "pointer": "/metrics/unknown", "time": "/at", "mode": "live", "unit": "个", "public": "same", "stale_after": 300, "hide_zero": true, "note": "外观工具升级多出的设置会不会漏存？"},
+    {"id": "saved_at", "label": "这身打扮存下的日子", "source": "millennium.live", "pointer": "/metrics/saved_at", "time": "/at", "mode": "live", "unit": "", "public": "same", "stale_after": 300},
+    {"id": "history", "label": "每份衣橱的换装记录", "source": "millennium.snapshot", "pointer": "/metrics/history", "time": "/at", "mode": "static", "unit": "份", "public": "same", "shape": "list"},
+    {"id": "files", "label": "已保存文件明细", "source": "millennium.live", "pointer": "/file_list", "time": "/at", "mode": "live", "unit": "个文件", "public": "same", "stale_after": 300, "shape": "list"},
+    {"id": "plugin_files", "label": "插件清单文件", "source": "millennium.live", "pointer": "/metrics/plugin_files", "time": "/at", "mode": "live", "unit": "个", "public": "same", "stale_after": 300},
+    {"id": "theme_files", "label": "皮肤清单文件", "source": "millennium.live", "pointer": "/metrics/theme_files", "time": "/at", "mode": "live", "unit": "个", "public": "same", "stale_after": 300},
+    {"id": "docs_files", "label": "自有说明文档", "source": "millennium.snapshot", "pointer": "/metrics/docs_files", "time": "/at", "mode": "static", "unit": "个文件", "public": "same"},
+    {"id": "code_files", "label": "自有代码文件", "source": "millennium.snapshot", "pointer": "/metrics/code_files", "time": "/at", "mode": "static", "unit": "个文件", "public": "same"},
+    {"id": "config_files", "label": "项目配置文件", "source": "millennium.snapshot", "pointer": "/metrics/config_files", "time": "/at", "mode": "static", "unit": "个文件", "public": "same"},
+    {"id": "tracked_files", "label": "Git 跟踪文件", "source": "millennium.snapshot", "pointer": "/metrics/tracked_files", "time": "/at", "mode": "static", "unit": "个文件", "public": "same"},
+    {"id": "code_chars", "label": "自有代码文字", "source": "millennium.snapshot", "pointer": "/size/code_chars", "time": "/at", "mode": "static", "unit": "字", "public": "same"}
+  ],
+  "artifacts": {"source": "millennium.snapshot", "pointer": "/artifacts"},
+  "size": {"source": "millennium.snapshot", "pointer": "/size"},
+  "links": [{"id": "intro", "label": "项目介绍", "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup#readme"}]
+}
