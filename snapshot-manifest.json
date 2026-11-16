@@ -22,7 +22,7 @@
       "plugin-private settings are not inspected; recheck in each plugin"
     ]
   },
-  "created_utc": "2026-10-26T02:35:54.198426Z",
+  "created_utc": "2026-11-16T02:30:02.440923Z",
   "files": [
     {
       "bytes": 5564,
@@ -145,11 +145,11 @@
       "sha256": "ec5c9acf036c72c52e5d85d2a23005cef07d2ea8893293b67f58251de4d0f18a"
     }
   ],
-  "generation": "20261026T023554Z-30c33dbf7922",
+  "generation": "20261116T023002Z-32ad9aadecda",
   "schema": "millennium.snapshot.v2",
   "tool_version": "2.0.1",
   "versions": {
     "millennium": "v3.6.2",
-    "steam": "11.15.70.27"
+    "steam": "11.22.14.96"
   }
 }
