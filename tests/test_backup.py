@@ -103,6 +103,28 @@ class BackupTests(unittest.TestCase):
         self.assertIsNone(value['metrics']['unknown'])
         self.assertIn('取不到', value['reason'])
 
+    def test_status_disappearing_optional_file_is_unreadable_not_deleted(self):
+        first = self.snap()
+        before = file_view(self.dest)
+        optional = self.source / 'config/quick.css'
+        original = m.read_bytes
+        def disappears(path):
+            if path == optional and path.exists():
+                path.rename(self.root / 'disappeared.css')
+            return original(path)
+        with mock.patch.object(m, 'read_bytes', side_effect=disappears):
+            value = self.store.status()
+        self.assertEqual(value['status'], 'needs_attention')
+        self.assertEqual(value['reason'], 'source_optional_files_unreadable')
+        self.assertIsNone(value['changes'])
+        self.assertEqual(value['generation'], first['generation'])
+        self.assertEqual(value['file_warnings'][0]['relative_path'], 'config/quick.css')
+        self.assertEqual(value['file_warnings'][0]['reason'], 'source_disappeared')
+        self.assertEqual(file_view(self.dest), before)
+        value = self.store.status()
+        self.assertEqual(value['status'], 'source_changed')
+        self.assertEqual(value['changes'], [{'path': 'config/quick.css', 'change': 'deleted'}])
+
     def test_successive_updates_without_git_commit(self):
         self.snap()
         put(self.source, 'config/config.json', core('red'))

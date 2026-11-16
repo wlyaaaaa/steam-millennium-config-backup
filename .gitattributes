@@ -1,0 +1,4 @@
+config/** text eol=lf
+plugins/** text eol=lf
+themes/** text eol=lf
+snapshot-manifest.json text eol=lf

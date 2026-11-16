@@ -781,13 +781,16 @@ class SnapshotStore:
         value = {"schema": "millennium.status.v2", "write_mode": "zero_write", "status": "healthy"}
         try:
             files, manifest = verify_bundle(self.destination)
-            source_files, observation = read_source(self.source)
-            changes = [{"path": p, "change": "added" if p not in files else "deleted" if p not in source_files else "modified"}
+            file_warnings = []
+            source_files, observation = read_source(self.source, file_warnings=file_warnings)
+            changes = None if file_warnings else [{"path": p, "change": "added" if p not in files else "deleted" if p not in source_files else "modified"}
                        for p in sorted(set(files) | set(source_files)) if files.get(p) != source_files.get(p)]
             value.update(generation=manifest["generation"], verified_files=len(files), changes=changes,
                          coverage=manifest["coverage"], omitted_core_fields=observation["omitted_core_fields"])
             if changes:
                 value["status"] = "source_changed"
+            if file_warnings:
+                value.update(status="needs_attention", reason="source_optional_files_unreadable", file_warnings=file_warnings)
         except (BackupError, OSError) as exc:
             value.update(status="needs_attention", reason=str(exc) if isinstance(exc, BackupError) else type(exc).__name__)
         binding_path = self.runtime / "binding.json"

@@ -160,7 +160,7 @@ if ($Mode -eq 'Status') {
                 $lastMachine.replica.source_generation -eq $payload.generation -and
                 $lastMachine.replica.generation -eq $r.Value.generation
             if ($r.Code -ne 0 -or ($r.Value.generation -ne $payload.generation -and -not $warningProjection)) { $payload.status='needs_attention';$exitCode=2 }
-            elseif($warningProjection){ $payload | Add-Member -NotePropertyName file_warnings -NotePropertyValue $lastMachine.file_warnings -Force }
+            elseif($warningProjection){ $payload | Add-Member -NotePropertyName file_warnings -NotePropertyValue @(@($payload.file_warnings) + @($lastMachine.file_warnings) | Where-Object { $null -ne $_ }) -Force }
         }
         catch { $payload | Add-Member -NotePropertyName replica_readback -NotePropertyValue @{status='unavailable'} -Force;$payload.status='needs_attention';$exitCode=2 }
     }
