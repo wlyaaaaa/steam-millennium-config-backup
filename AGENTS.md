@@ -5,7 +5,7 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
 
 - Read-only entry: `tools/Invoke-MillenniumBackup.ps1 -Mode Status` or `-Mode Verify`.
   `RestorePlan` is also zero-write. `Snapshot`, `Recover`, `Restore`, `Rollback`,
-  `Replicate`, task Install/Enable/Disable are writes, never checks.
+  `Replicate`, `Live` (measurement output only), task Install/Enable/Disable are writes, never checks.
 - PowerShell 7.2+ launches the standard-library Python 3.11+ engine. Do not restore
   the old time throttle or dirty-workspace bypass.
 - Preserve the name and path `tools/snapshot-millennium-config-hidden.vbs`:

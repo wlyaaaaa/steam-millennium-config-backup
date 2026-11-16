@@ -1156,12 +1156,114 @@ def rollback_restore(target: Path, identifier: str) -> dict:
         return {"schema": "millennium.restore.v2", "status": "rolled_back", "rollback_id": identifier, "verified_files": len(writes)}
 
 
+def export_live(store, output: Path, static_output: Path | None = None) -> dict:
+    """Publish measurements only; never capture, restore or execute components."""
+    at = utc()
+    metrics = dict.fromkeys(("plugins", "themes", "restore", "changes", "unknown", "saved_at",
+                             "plugin_files", "theme_files"))
+    value = dict(v=1, at=at, scope="已保存的核心设置、快捷样式和组件清单；不含插件程序、素材和插件私有设置", metrics=metrics)
+    try:
+        files, manifest = verify_bundle(store.destination)
+        core = parse_json(files["config/config.json"], "core")
+        names = {group: sorted({p.split("/")[1] for p in files if p.startswith(group+"/")}) for group in ("plugins", "themes")}
+        enabled, active = core["plugins"]["enabledPlugins"], core["themes"]["activeTheme"]
+        rows = [dict(text=name, state_text="已启用" if name in enabled else "未启用") for name in names["plugins"]]
+        skins = [dict(text=name, state_text="正在穿" if name == active else "未选中") for name in names["themes"]]
+        restorable = sum(p.startswith("config/") for p in files)
+        size = sum(map(len, files.values()))
+        metrics.update(plugins=dict(count=len(rows), enabled=len(enabled), text=f"{len(rows)} 个，其中 {len(enabled)} 个开着"),
+            themes=dict(count=len(skins), active=active, text=f"{len(skins)} 套，正在穿 {active or '默认皮肤'}"),
+            restore=dict(files=len(files), bytes=size, restorable=restorable, inventory=len(files)-restorable,
+                text=f"共 {len(files)} 个文件、约 {size/1024:.1f} KB；能直接带回 {restorable} 样，其余 {len(files)-restorable} 个是清单"),
+            saved_at=manifest["created_utc"], plugin_files=sum(p.startswith("plugins/") for p in files),
+            theme_files=sum(p.startswith("themes/") for p in files))
+        value.update(plugin_list=rows, theme_list=skins)
+        value["file_list"] = [dict(text=p, bytes=len(b), state_text="可直接恢复" if p.startswith("config/") else "仅清单")
+                              for p, b in sorted(files.items())]
+        warnings = []
+        source, observation = read_source(store.source, file_warnings=warnings)
+        if warnings:
+            raise BackupError("source_observation_incomplete")
+        if parse_json(read_bytes(store.destination / MANIFEST), MANIFEST) != manifest or (store.destination / JOURNAL).exists():
+            raise BackupError("snapshot_changed_during_read")
+        counts = dict(added=sum(p not in files for p in source), deleted=sum(p not in source for p in files),
+                      modified=sum(files[p] != source[p] for p in files.keys() & source.keys()))
+        total = sum(counts.values())
+        text = f"{total} 处（多出 {counts['added']}、改了 {counts['modified']}、少了 {counts['deleted']}）"
+        metrics.update(changes=dict(total=total, **counts, text=text+("；之后外观没变过，所以没出新的一份" if total == 0 else "")),
+                       unknown=len(observation["omitted_core_fields"]))
+    except (BackupError, OSError, ValueError, KeyError) as exc:
+        metrics.update(changes=None, unknown=None)
+        value.update(reason="无法完整读取现用外观或核对快照；没存进去的改动取不到", error=type(exc).__name__)
+        value["scope"] += "；"+value["reason"]
+    atomic_json(output, value)
+    if static_output:
+        if metrics["saved_at"] is None:
+            raise BackupError("static_requires_verified_snapshot")
+        prior = parse_json(static_output.read_bytes(), "live-static") if static_output.exists() else {}
+        history, previous = [], None
+        for bundle in sorted((store.runtime / "snapshots").glob("*/")):
+            if not GENERATION.fullmatch(bundle.name):
+                continue
+            saved, metadata = verify_bundle(bundle)
+            settings = parse_json(saved["config/config.json"], "core")
+            plugins = {p.split("/")[1] for p in saved if p.startswith("plugins/")}
+            selected = settings["themes"]["activeTheme"]
+            row = dict(at=metadata["created_utc"], state_text="已保存", added=None, removed=None,
+                       theme_before=None, theme_after=selected, text="可用历史起点；没有更早一份可比")
+            if previous:
+                old, old_plugins, old_theme = previous
+                added, removed = sorted(plugins-old_plugins), sorted(old_plugins-plugins)
+                changed = sum(old.get(p) != saved.get(p) for p in old.keys() | saved.keys())
+                text = f"多了：{'、'.join(added) or '无'}；少了：{'、'.join(removed) or '无'}；皮肤：{old_theme} → {selected}；设置或清单变化 {changed} 个文件"
+                row.update(added=added, removed=removed, theme_before=old_theme, files_changed=changed, text=text)
+            history.append(row)
+            previous = saved, plugins, selected
+        root = Path(__file__).resolve().parents[1]
+        docs = [root / name for name in ("README.md", "AGENTS.md")]
+        code = [p for folder in ("tools", "tests") for p in (root/folder).rglob("*") if p.suffix in {".py", ".ps1", ".vbs"}]
+        code += [root / "config/quick.css"]
+        tracked = subprocess.run(["git", "-C", str(root), "ls-files"], check=True, capture_output=True, text=True, encoding="utf-8").stdout.splitlines()
+        static = dict(v=1, at=prior.get("at", at), scope="按需整理的换装记录及仓库规模；不代表真实重装验收", metrics=dict(history=history[::-1],
+            docs_files=len(docs), code_files=len(code), tracked_files=len(tracked),
+            config_files=sum(p in tracked for p in (".gitignore", "config/config.json", "snapshot-manifest.json", "docs/live.contract.json"))),
+            size=dict(at=prior.get("size", {}).get("at", at), docs_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in docs),
+                      code_lines=sum(len(p.read_text("utf-8-sig").splitlines()) for p in code),
+                      code_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in code)))
+        artifacts = []
+        clock = lambda stamp: dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")+"（北京时间）"
+        for name, title, lines, created in (
+            ("wardrobe", "现在这一份衣橱清单", [f"存下的日子：{clock(metrics['saved_at'])}", "可直接带回：核心设置、quick.css", "插件："]+
+             [f"- {r['text']}（{r['state_text']}）" for r in value.get("plugin_list", [])]+["皮肤："]+
+             [f"- {r['text']}（{r['state_text']}）" for r in value.get("theme_list", [])], metrics["saved_at"]),
+            ("wardrobe-history", "换装记录", [f"- {clock(r['at'])}：{r['text']}" for r in history[::-1]], prior.get("at", at) if history else None)):
+            if not created:
+                continue
+            content = (f"# {title}\n\n"+"\n\n".join(lines)+"\n").encode("utf-8")
+            path = static_output.parent / (name+".md")
+            changed = not path.exists() or path.read_bytes() != content
+            if changed:
+                atomic_write(path, content)
+            if name == "wardrobe-history":
+                created = at if changed else next((a["at"] for a in prior.get("artifacts", []) if a["open"]["source"] == "millennium."+name), created)
+            artifacts.append(dict(at=created, kind="inventory", title=title, status="completed", public="same",
+                open=dict(source="millennium."+name, href="https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/"+name+".md")))
+        static["artifacts"] = artifacts
+        if prior != static:
+            static["at"] = at
+            static["size"]["at"] = at
+            atomic_json(static_output, static)
+    return value
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("action", choices=["snapshot", "status", "verify", "replicate", "restore-plan", "restore", "rollback", "recover"])
+    p.add_argument("action", choices=["snapshot", "status", "live", "verify", "replicate", "restore-plan", "restore", "rollback", "recover"])
     p.add_argument("--source", type=Path)
     p.add_argument("--destination", type=Path, required=True)
     p.add_argument("--runtime", type=Path)
+    p.add_argument("--live-output", type=Path)
+    p.add_argument("--static-output", type=Path)
     p.add_argument("--target", type=Path)
     p.add_argument("--adopt-existing", action="store_true")
     p.add_argument("--keep", type=int, default=4)
@@ -1176,12 +1278,18 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     args = parser().parse_args(argv)
     try:
-        if args.action in ("snapshot", "status"):
+        if args.action in ("snapshot", "status", "live"):
             if args.source is None:
                 raise BackupError("source_required")
             store = SnapshotStore(args.source, args.destination, args.runtime)
-            result = store.snapshot(adopt_existing=args.adopt_existing, keep=args.keep,
-                                    versions=parse_json(args.versions_json.encode(), "versions")) if args.action == "snapshot" else store.status()
+            if args.action == "live":
+                result = export_live(store, args.live_output or store.runtime / "live.json", args.static_output)
+            elif args.action == "snapshot":
+                result = store.snapshot(adopt_existing=args.adopt_existing, keep=args.keep,
+                                        versions=parse_json(args.versions_json.encode(), "versions"))
+                export_live(store, store.runtime / "live.json")
+            else:
+                result = store.status()
         elif args.action == "verify":
             files, manifest = verify_bundle(args.destination)
             result = {"status": "verified", "schema": "millennium.verify.v2", "write_mode": "zero_write",
