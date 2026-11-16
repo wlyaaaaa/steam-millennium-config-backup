@@ -6,7 +6,7 @@
   "headline": "changes",
   "tasks": ["task-9d715101b827fb7aa08aeb5a"],
   "skills": [],
-  "bindings_complete": false,
+  "bindings_complete": true,
   "sections": [
     {"id": "wardrobe", "label": "衣橱里有什么", "about": "我用了几个插件、开着几个，有几套皮肤，现在穿哪套？", "metrics": ["plugins", "themes", "restore"], "note": "插件程序、皮肤素材、插件自己的设置不在里面，要重新装。"},
     {"id": "comparison", "label": "跟现在的 Steam 对得上吗", "about": "最近改的外观记住没有，这一份是多久前的？", "metrics": ["changes", "unknown", "saved_at"], "note": "只比较支持的核心设置、快捷样式和组件清单；比较失败显示取不到。"},
