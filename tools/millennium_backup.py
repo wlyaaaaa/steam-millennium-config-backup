@@ -1227,7 +1227,7 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
         code = [p for folder in ("tools", "tests") for p in (root/folder).rglob("*") if p.suffix in {".py", ".ps1", ".vbs"}]
         code += [root / "config/quick.css"]
         tracked = subprocess.run(["git", "-C", str(root), "ls-files"], check=True, capture_output=True, text=True, encoding="utf-8").stdout.splitlines()
-        static = dict(v=1, at=prior.get("at", at), scope="按需整理的换装记录及仓库规模；不代表真实重装验收", metrics=dict(history=history[::-1],
+        static = dict(v=1, at=prior.get("at", at), scope="已保存的换装记录", metrics=dict(history=history[::-1],
             docs_files=len(docs), code_files=len(code), tracked_files=len(tracked),
             config_files=sum(p in tracked for p in (".gitignore", "config/config.json", "snapshot-manifest.json", "docs/live.contract.json"))),
             size=dict(at=prior.get("size", {}).get("at", at), docs_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in docs),
