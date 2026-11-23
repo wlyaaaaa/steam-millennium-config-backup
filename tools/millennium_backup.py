@@ -1159,6 +1159,20 @@ def rollback_restore(target: Path, identifier: str) -> dict:
         return {"schema": "millennium.restore.v2", "status": "rolled_back", "rollback_id": identifier, "verified_files": len(writes)}
 
 
+def source_size():
+    root = Path(__file__).resolve().parents[1]
+    docs = [root / name for name in ("README.md", "AGENTS.md")]
+    code = [p for folder in ("tools", "tests") for p in (root/folder).rglob("*") if p.suffix in {".py", ".ps1", ".vbs"}]
+    code += [root / "config/quick.css"]
+    tracked = subprocess.run(["git", "-C", str(root), "ls-files"], check=True, capture_output=True, text=True, encoding="utf-8").stdout.splitlines()
+    metrics = dict(docs_files=len(docs), code_files=len(code), tracked_files=len(tracked),
+        config_files=sum(p in tracked for p in (".gitignore", "config/config.json", "snapshot-manifest.json", "docs/live.contract.json")))
+    size = dict(docs_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in docs),
+        code_lines=sum(len(p.read_text("utf-8-sig").splitlines()) for p in code),
+        code_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in code))
+    return size, metrics
+
+
 def export_live(store, output: Path, static_output: Path | None = None) -> dict:
     """Publish measurements only; never capture, restore or execute components."""
     at = utc()
@@ -1222,17 +1236,9 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
                 row.update(added=added, removed=removed, theme_before=old_theme, files_changed=changed, text=text)
             history.append(row)
             previous = saved, plugins, selected
-        root = Path(__file__).resolve().parents[1]
-        docs = [root / name for name in ("README.md", "AGENTS.md")]
-        code = [p for folder in ("tools", "tests") for p in (root/folder).rglob("*") if p.suffix in {".py", ".ps1", ".vbs"}]
-        code += [root / "config/quick.css"]
-        tracked = subprocess.run(["git", "-C", str(root), "ls-files"], check=True, capture_output=True, text=True, encoding="utf-8").stdout.splitlines()
-        static = dict(v=1, at=prior.get("at", at), scope="已保存的换装记录", metrics=dict(history=history[::-1],
-            docs_files=len(docs), code_files=len(code), tracked_files=len(tracked),
-            config_files=sum(p in tracked for p in (".gitignore", "config/config.json", "snapshot-manifest.json", "docs/live.contract.json"))),
-            size=dict(at=prior.get("size", {}).get("at", at), docs_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in docs),
-                      code_lines=sum(len(p.read_text("utf-8-sig").splitlines()) for p in code),
-                      code_chars=sum(sum(not c.isspace() for c in p.read_text("utf-8-sig")) for p in code)))
+        size, source_counts = source_size()
+        static = dict(v=1, at=prior.get("at", at), scope="已保存的换装记录", metrics=dict(history=history[::-1], **source_counts),
+            size=dict(size, at=prior.get("size", {}).get("at", at)))
         artifacts = []
         clock = lambda stamp: dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")+"（北京时间）"
         for name, title, lines, created in (
