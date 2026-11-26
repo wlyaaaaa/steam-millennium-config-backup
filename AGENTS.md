@@ -5,11 +5,10 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
 
 - Read-only entry: `tools/Invoke-MillenniumBackup.ps1 -Mode Status` or `-Mode Verify`.
   `RestorePlan` is also zero-write. `Snapshot`, `Recover`, `Restore`, `Rollback`,
-  `Replicate`, `Live` (measurement output only), task Install/Enable/Disable are writes, never checks.
+  `Replicate` and `Live` (measurement output only) are writes, never checks.
 - PowerShell 7.2+ launches the standard-library Python 3.11+ engine. Do not restore
   the old time throttle or dirty-workspace bypass.
-- Preserve the name and path `tools/snapshot-millennium-config-hidden.vbs`:
-  SteamMillenniumConfigSnapshot and PCConfig's tasks.json are bound to this launcher.
+- The former weekly task is retired. The current Windows system backup covers the installed configuration.
 - `config`, `plugins`, `themes` and `snapshot-manifest.json` are a verified public
   projection. Runtime/transaction/restore preimages are local and ignored.
 - Unknown core settings are reported, not published. Plugin-private settings and
@@ -27,5 +26,5 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
 - A snapshot saves supported core settings and quick CSS for restoration; plugin
   and theme manifests are inventory only. Keep the user's existing choice that
   source deletions propagate only after a complete, readable source scan.
-- No automatic Git commit or push runs with the scheduled snapshot. G and H are
+- Taking a snapshot does not commit or push to Git. G and H are
   separate verification results; a local success must not mask a failed replica.

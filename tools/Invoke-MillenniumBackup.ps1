@@ -115,8 +115,8 @@ if ($Mode -eq 'Snapshot' -and $config -and $result.Code -eq 0) {
     if($LASTEXITCODE -ne 0){ throw 'machine_run_receipt_failed' }
 }
 if ($Mode -eq 'Status') {
-    $payload | Add-Member -NotePropertyName health_scope -NotePropertyValue 'local_snapshot_task_and_hot_replica' -Force
-    if($config){
+    $payload | Add-Member -NotePropertyName health_scope -NotePropertyValue 'local_snapshot_and_configured_replicas' -Force
+    if($config -and $config.h_replica_root){
         $coldPath=Join-Path ([string]$config.h_replica_root) 'replica-receipt.json'
         $cold=@{status='unverified_or_unavailable';expected_path=[string]$config.h_replica_root}
         if(Test-Path -LiteralPath $coldPath -PathType Leaf){
@@ -141,16 +141,6 @@ if ($Mode -eq 'Status') {
         $payload | Add-Member -NotePropertyName machine_run -NotePropertyValue $lastMachine -Force
         if ($lastMachine.status -notin @('complete','unchanged')) {$payload.status='needs_attention';$exitCode=2}
     }
-    if($config){ try {
-        $task = Get-ScheduledTask -TaskName 'SteamMillenniumConfigSnapshot' -TaskPath '\' -ErrorAction Stop
-        $info = Get-ScheduledTaskInfo -TaskName 'SteamMillenniumConfigSnapshot' -TaskPath '\' -ErrorAction Stop
-        $payload | Add-Member -NotePropertyName task -NotePropertyValue @{
-            state=[string]$task.State;enabled=[bool]$task.Settings.Enabled;last_result=$info.LastTaskResult;
-            last_run=$info.LastRunTime.ToString('o');next_run=$info.NextRunTime.ToString('o')
-        } -Force
-        if ((-not $task.Settings.Enabled -or $info.LastTaskResult -notin @(0,267009)) -and $payload.status -eq 'healthy') { $payload.status='needs_attention'; $exitCode=2 }
-    }
-    catch { $payload | Add-Member -NotePropertyName task -NotePropertyValue @{state='unknown_or_missing'} -Force; if ($config) {$payload.status='needs_attention';$exitCode=2} } }
     if ($config -and $config.g_replica_enabled) {
         try {
             $r = Invoke-Engine @('verify','--destination',[string]$config.g_replica_root)

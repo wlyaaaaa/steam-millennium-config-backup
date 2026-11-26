@@ -60,7 +60,5 @@ try{
  Assert-Case ($LASTEXITCODE -eq 0 -and (Get-FileHash (Join-Path $target 'config\config.json')).Hash -ceq $original) 'Windows rollback recovers exact preimage bytes'
  $a=Invoke-Case Snapshot @('-SourceRoot',$source,'-RuntimeRoot',(Join-Path $source 'runtime'))
  Assert-Case ($a.code -ne 0 -and -not (Test-Path (Join-Path $source 'runtime'))) 'unsafe runtime overlap fails before creating source paths'
- $gui=& pwsh -NoProfile -STA -File (Join-Path $repo 'tools\Show-MillenniumBackupStatus.ps1') -ValidateOnly|ConvertFrom-Json
- Assert-Case ($LASTEXITCODE -eq 0 -and $gui.status -eq 'constructed' -and $gui.buttons -eq 5) 'status window constructs its five controls without launching a desktop window'
  [pscustomobject]@{schema='millennium.windows-tests.v1';status='passed';checks=$script:checks}|ConvertTo-Json
 }finally{if(Test-Path $case){Remove-Item $case -Recurse -Force}}
