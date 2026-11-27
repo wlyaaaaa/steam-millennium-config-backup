@@ -1,7 +1,7 @@
 # Steam Millennium backup
 
-This project owns snapshot/restore semantics. PCConfig owns this machine's binding,
-Task Scheduler and G/H media identities. Do not duplicate global authorization rules.
+This project owns snapshot/restore semantics. PCConfig owns this machine's
+source binding and Windows system backup. Do not duplicate global authorization rules.
 
 - Read-only entry: `tools/Invoke-MillenniumBackup.ps1 -Mode Status` or `-Mode Verify`.
   `RestorePlan` is also zero-write. `Snapshot`, `Recover`, `Restore`, `Rollback`,
@@ -18,13 +18,11 @@ Task Scheduler and G/H media identities. Do not duplicate global authorization r
   under the destination's fixed OS lock, to resolve interruption; never hand-delete
   transaction preimages. Manual conflicts are preserved, not forced away.
 - Run `pwsh -File tests/run-snapshot-tests.ps1`. Tests use synthetic temporary roots;
-  live source reads, actual task execution, G replica and live Steam UI acceptance
-  remain separate checks. Do not restore into live Steam as a test.
+  live source reads and live Steam UI acceptance remain separate checks. Do not
+  restore into live Steam as a test.
 - Machine entry is `E:\PCConfig\registries\steam_millennium_backup.json` on the
-  registered host. Its absence means a portable local-only invocation; never invent
-  a G/H disk identity. Public Git publication is separate from local capture.
+  registered host. Its absence means a portable local-only invocation. Public Git publication is separate from local capture.
 - A snapshot saves supported core settings and quick CSS for restoration; plugin
   and theme manifests are inventory only. Keep the user's existing choice that
   source deletions propagate only after a complete, readable source scan.
-- Taking a snapshot does not commit or push to Git. G and H are
-  separate verification results; a local success must not mask a failed replica.
+- Taking a snapshot does not commit or push to Git. Replicate takes an explicit target.

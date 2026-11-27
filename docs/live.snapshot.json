@@ -4,18 +4,18 @@
       "at": "2026-11-16T02:30:02.440923Z",
       "kind": "inventory",
       "open": {
-        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/wardrobe.md",
+        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/HEAD/docs/wardrobe.md",
         "source": "millennium.wardrobe"
       },
       "public": "same",
       "status": "completed",
-      "title": "现在这一份衣橱清单"
+      "title": "11月16日 衣橱清单"
     },
     {
       "at": "2026-11-16T03:29:14.569774Z",
       "kind": "inventory",
       "open": {
-        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/wardrobe-history.md",
+        "href": "https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/HEAD/docs/wardrobe-history.md",
         "source": "millennium.wardrobe-history"
       },
       "public": "same",
@@ -69,6 +69,12 @@
         "theme_before": null
       }
     ],
+    "replica_history": {
+      "completed_at": "2026-11-16T02:30:07.713405Z",
+      "retained_generations": 4,
+      "status": "complete",
+      "verified_files": 20
+    },
     "tracked_files": 41
   },
   "scope": "已保存的换装记录",

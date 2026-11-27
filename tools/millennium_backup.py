@@ -812,11 +812,9 @@ class SnapshotStore:
             age = (dt.datetime.now(dt.timezone.utc) - last).total_seconds() / 3600
             value["last_success_utc"] = state["lastSnapshotUtc"]
             value["age_hours"] = round(age, 2)
-            if age < -1 or age > 216:
+            if age < -1:
                 value["status"] = "needs_attention"
-                value["freshness"] = "clock_anomaly" if age < -1 else "stale"
-        if (self.runtime / "replica-last.json").exists():
-            value["replica"] = parse_json(read_bytes(self.runtime / "replica-last.json"), "replica")
+                value["freshness"] = "clock_anomaly"
         return value
 
 
@@ -1203,15 +1201,21 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
             raise BackupError("source_observation_incomplete")
         if parse_json(read_bytes(store.destination / MANIFEST), MANIFEST) != manifest or (store.destination / JOURNAL).exists():
             raise BackupError("snapshot_changed_during_read")
-        counts = dict(added=sum(p not in files for p in source), deleted=sum(p not in source for p in files),
-                      modified=sum(files[p] != source[p] for p in files.keys() & source.keys()))
+        changes = {"added": sorted(source.keys() - files.keys()),
+                   "modified": sorted(p for p in files.keys() & source.keys() if files[p] != source[p]),
+                   "deleted": sorted(files.keys() - source.keys())}
+        counts = {kind: len(paths) for kind, paths in changes.items()}
         total = sum(counts.values())
+        labels = {"added": "多出", "modified": "改了", "deleted": "少了"}
+        value["change_list"] = [dict(text=path, state_text=labels[kind])
+                                for kind, paths in changes.items() for path in paths]
+        current = parse_json(source["config/config.json"], "core")
+        metrics["themes"]["current_active"] = current["themes"]["activeTheme"]
         text = f"{total} 处（多出 {counts['added']}、改了 {counts['modified']}、少了 {counts['deleted']}）"
-        metrics.update(changes=dict(total=total, **counts, text=text+("；之后外观没变过，所以没出新的一份" if total == 0 else "")),
-                       unknown=len(observation["omitted_core_fields"]))
+        metrics.update(changes=dict(total=total, **counts, text=text), unknown=len(observation["omitted_core_fields"]))
     except (BackupError, OSError, ValueError, KeyError) as exc:
         metrics.update(changes=None, unknown=None)
-        value.update(reason="无法完整读取现用外观或核对快照；没存进去的改动取不到", error=type(exc).__name__)
+        value.update(reason="无法完整读取现用外观或核对旧衣橱，暂时读不到差异", error=type(exc).__name__)
         value["scope"] += "；"+value["reason"]
     atomic_json(output, value)
     if static_output:
@@ -1239,24 +1243,29 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
         size, source_counts = source_size()
         static = dict(v=1, at=prior.get("at", at), scope="已保存的换装记录", metrics=dict(history=history[::-1], **source_counts),
             size=dict(size, at=prior.get("size", {}).get("at", at)))
+        if replica := prior.get("metrics", {}).get("replica_history"):
+            static["metrics"]["replica_history"] = replica
         artifacts = []
-        clock = lambda stamp: dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")+"（北京时间）"
+        beijing = dt.timezone(dt.timedelta(hours=8))
+        def clock(stamp, pattern="%Y-%m-%d %H:%M:%S（北京时间）"):
+            return dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(beijing).strftime(pattern)
         for name, title, lines, created in (
-            ("wardrobe", "现在这一份衣橱清单", [f"存下的日子：{clock(metrics['saved_at'])}", "可直接带回：核心设置、quick.css", "插件："]+
+            ("wardrobe", "停用自动备份前保存的衣橱清单", [f"存下的日子：{clock(metrics['saved_at'])}", "可直接带回：核心设置、quick.css", "插件："]+
              [f"- {r['text']}（{r['state_text']}）" for r in value.get("plugin_list", [])]+["皮肤："]+
              [f"- {r['text']}（{r['state_text']}）" for r in value.get("theme_list", [])], metrics["saved_at"]),
-            ("wardrobe-history", "换装记录", [f"- {clock(r['at'])}：{r['text']}" for r in history[::-1]], prior.get("at", at) if history else None)):
+            ("wardrobe-history", "停用自动备份前的换装记录", [f"- {clock(r['at'])}：{r['text']}" for r in history[::-1]], prior.get("at", at) if history else None)):
             if not created:
                 continue
-            content = (f"# {title}\n\n"+"\n\n".join(lines)+"\n").encode("utf-8")
+            content = f"# {title}\n\n"+"\n\n".join(lines)+"\n"
             path = static_output.parent / (name+".md")
-            changed = not path.exists() or path.read_bytes() != content
+            changed = not path.exists() or path.read_text("utf-8-sig") != content
             if changed:
-                atomic_write(path, content)
+                atomic_write(path, content.encode("utf-8"))
             if name == "wardrobe-history":
                 created = at if changed else next((a["at"] for a in prior.get("artifacts", []) if a["open"]["source"] == "millennium."+name), created)
-            artifacts.append(dict(at=created, kind="inventory", title=title, status="completed", public="same",
-                open=dict(source="millennium."+name, href="https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/main/docs/"+name+".md")))
+            artifact_title = clock(created, "%m月%d日 衣橱清单") if name == "wardrobe" else "换装记录"
+            artifacts.append(dict(at=created, kind="inventory", title=artifact_title, status="completed", public="same",
+                open=dict(source="millennium."+name, href="https://github.com/wlyaaaaa/steam-millennium-config-backup/blob/HEAD/docs/"+name+".md")))
         static["artifacts"] = artifacts
         if prior != static:
             static["at"] = at

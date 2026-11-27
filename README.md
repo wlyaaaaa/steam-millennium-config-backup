@@ -17,7 +17,7 @@ git status --short
 git diff HEAD -- config plugins themes snapshot-manifest.json
 ```
 
-`Status` 核对本地旧快照和明确配置的副本。可选源文件读不全时，`changes` 为 `null`，`file_warnings` 说明原因。未通过核验就保留现场，不发布。
+`Status` 核对本地旧快照与现用配置。核对已有异盘快照时，给 `Verify` 明确指定该快照的 `-DestinationRoot`。可选源文件读不全时，`changes` 为 `null`，`file_warnings` 说明原因。未通过核验就保留现场，不发布。
 
 实况页通过 `docs/live.contract.json` 读取现有小输出。`Snapshot` 完成后顺带更新被忽略的
 `runtime/live.json`；`Status`、`Verify` 仍然零写入。需要单独刷新测量时运行
