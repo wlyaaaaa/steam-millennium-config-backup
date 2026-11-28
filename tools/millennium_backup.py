@@ -1211,8 +1211,10 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
                                 for kind, paths in changes.items() for path in paths]
         current = parse_json(source["config/config.json"], "core")
         metrics["themes"]["current_active"] = current["themes"]["activeTheme"]
-        text = f"{total} 处（多出 {counts['added']}、改了 {counts['modified']}、少了 {counts['deleted']}）"
-        metrics.update(changes=dict(total=total, **counts, text=text), unknown=len(observation["omitted_core_fields"]))
+        short_text = f"{total} 处"
+        explanation_text = f"多出 {counts['added']}、改了 {counts['modified']}、少了 {counts['deleted']}"
+        metrics.update(changes=dict(total=total, **counts, text=f"{short_text}（{explanation_text}）",
+            short_text=short_text, explanation_text=explanation_text), unknown=len(observation["omitted_core_fields"]))
     except (BackupError, OSError, ValueError, KeyError) as exc:
         metrics.update(changes=None, unknown=None)
         value.update(reason="无法完整读取现用外观或核对旧衣橱，暂时读不到差异", error=type(exc).__name__)
