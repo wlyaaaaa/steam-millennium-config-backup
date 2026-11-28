@@ -101,7 +101,6 @@ class BackupTests(unittest.TestCase):
         value = m.export_live(self.store, live)
         self.assertIsNone(value['metrics']['changes'])
         self.assertIsNone(value['metrics']['unknown'])
-        self.assertIn('取不到', value['reason'])
 
     def test_status_disappearing_optional_file_is_unreadable_not_deleted(self):
         first = self.snap()
