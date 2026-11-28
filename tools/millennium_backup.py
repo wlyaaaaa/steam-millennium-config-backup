@@ -1189,7 +1189,7 @@ def export_live(store, output: Path, static_output: Path | None = None) -> dict:
         metrics.update(plugins=dict(count=len(rows), enabled=len(enabled), text=f"{len(rows)} 个，其中 {len(enabled)} 个开着"),
             themes=dict(count=len(skins), active=active, text=f"{len(skins)} 套，正在穿 {active or '默认皮肤'}"),
             restore=dict(files=len(files), bytes=size, restorable=restorable, inventory=len(files)-restorable,
-                text=f"共 {len(files)} 个文件、约 {size/1024:.1f} KB；能直接带回 {restorable} 样，其余 {len(files)-restorable} 个是清单"),
+                text=f"共 {len(files)} 个文件、{size/1024:.1f} KB；能直接带回 {restorable} 样，其余 {len(files)-restorable} 个是清单"),
             saved_at=manifest["created_utc"], plugin_files=sum(p.startswith("plugins/") for p in files),
             theme_files=sum(p.startswith("themes/") for p in files))
         value.update(plugin_list=rows, theme_list=skins)
